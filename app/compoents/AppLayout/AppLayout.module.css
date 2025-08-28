@@ -1,0 +1,63 @@
+.appLayout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.ribbon {
+    height: 60px;
+    background: #2c3e50;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-weight: bold;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.leftPanel {
+    width: 300px;
+    /* 初始宽度 */
+    background: #f0f0f0;
+    border-right: 1px solid #ccc;
+    padding: 8px;
+    position: relative;
+    /* 让 resizer 绝对定位在右侧 */
+}
+
+.statusBar {
+    height: 30px;
+    background: #34495e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 12px;
+    font-family: sans-serif;
+}
+
+.statusItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.resizer {
+    width: 5px;
+    /* 手柄宽度 */
+    cursor: col-resize;
+    /* 左右拖动光标 */
+    position: absolute;
+    /* 绝对定位在面板右侧 */
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.1);
+    /* 可见的拖拽区域 */
+    z-index: 10;
+}
