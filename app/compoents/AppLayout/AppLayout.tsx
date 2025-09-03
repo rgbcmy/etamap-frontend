@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import MapComponent from "../MapComponent/MapComponent";
 import StatusBar from "../StatusBar/StatusBar";
 import styles from "./AppLayout.module.css";
+import LayerManager from "../LayerManager/LayerManager";
 
 export default function AppLayout() {
     const [map, setMap] = useState<any>(null);
@@ -38,7 +39,8 @@ export default function AppLayout() {
             <header className={styles.ribbon}>Ribbon 菜单栏</header>
             <div className={styles.main}>
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
-                    左侧面板（图层/数据源）
+                   
+                    <LayerManager map={map}></LayerManager>
                     <div className={styles.resizer} onMouseDown={onMouseDown}></div>
                 </div>
                 <MapComponent
