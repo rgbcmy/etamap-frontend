@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import MapComponent from "../MapComponent/MapComponent";
 import { Map } from "ol";
 import { Tree, type TreeDataNode, type TreeProps } from 'antd';
-import { serializeMapLayers } from 'openlayers-serializer/serializer';
-import type { IBaseLayer, IGroupLayer } from "openlayers-serializer/dto";
+import { serializeMapLayers } from 'openlayers-serializer';
+import type { IBaseLayer, IGroupLayer } from "openlayers-serializer";
 interface LayerManagerProps {
     map?: Map;
 }
