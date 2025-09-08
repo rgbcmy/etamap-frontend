@@ -6,7 +6,8 @@ import { serializeMapLayers } from 'openlayers-serializer';
 import type { IBaseLayer, IGroupLayer } from "openlayers-serializer";
 import { getLayerById, setLayerAndChildrenVisible, getParentLayer, getParentCollection } from "~/common/openlayers/layer";
 import LayerGroup from "ol/layer/Group";
-import { data } from "react-router";
+import { EyeOutlined, FolderAddOutlined, LoadingOutlined, SettingFilled, SmileOutlined, SyncOutlined } from '@ant-design/icons'
+import { Space } from 'antd';
 interface LayerManagerProps {
     map?: Map;
     /**是否联动子图层 */
@@ -540,6 +541,17 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
 
     return (
         <div>图层管理
+            <div>
+                <Space>
+                    <FolderAddOutlined />
+                    <EyeOutlined />
+                    <SettingFilled />
+                    <SmileOutlined />
+                    {/* <SyncOutlined spin />
+                    <SmileOutlined rotate={180} /> */}
+                    {/* <LoadingOutlined /> */}
+                </Space>
+            </div>
             <Tree
                 draggable={{
                     icon: false, // 不显示默认的 6 个点
