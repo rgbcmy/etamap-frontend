@@ -6,6 +6,7 @@ import { serializeMapLayers } from 'openlayers-serializer';
 import type { IBaseLayer, IGroupLayer } from "openlayers-serializer";
 import { getLayerById, setLayerAndChildrenVisible, getParentLayer, getParentCollection } from "~/common/openlayers/layer";
 import LayerGroup from "ol/layer/Group";
+import { data } from "react-router";
 interface LayerManagerProps {
     map?: Map;
     /**是否联动子图层 */
@@ -154,131 +155,6 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
             collection.remove(extra);
         }
     }
-    const onDrop: TreeProps['onDrop'] = (info) => {
-        if (!map || !info.dragNode || !info.node) return;
-
-        const dragKey = info.dragNode.key;
-        const dropKey = info.node.key;
-
-        const dropPosArr = info.node.pos.split('-');
-        let dropPosition = info.dropPosition - Number(dropPosArr[dropPosArr.length - 1]);
-        dropPosition = Math.sign(dropPosition); // 确保 -1 / 0 / 1
-
-        const data = [...treeData];
-
-        // ---------------------------
-        // 递归查找节点
-        // ---------------------------
-        const loop = (nodes: TreeDataNode[], key: React.Key, callback: (node: TreeDataNode, index: number, arr: TreeDataNode[]) => void) => {
-            for (let i = 0; i < nodes.length; i++) {
-                if (String(nodes[i].key) === String(key)) {
-                    callback(nodes[i], i, nodes);
-                    return;
-                }
-                if (nodes[i].children) loop(nodes[i].children!, key, callback);
-            }
-        };
-
-        let dragNodeRef: LayerTreeDataNode | any = null;
-        let dropNodeRef: LayerTreeDataNode | any = null;
-
-        loop(data, dragKey, (item) => dragNodeRef = item as LayerTreeDataNode);
-        loop(data, dropKey, (item) => dropNodeRef = item as LayerTreeDataNode);
-
-        if (!dragNodeRef || !dropNodeRef) return;
-
-        // 防止父节点放到自己的子孙里
-        const hasDescendant = (node: TreeDataNode | null, key: React.Key): boolean => {
-            if (!node || !node.children) return false;
-            for (const c of node.children) {
-                if (String(c.key) === String(key)) return true;
-                if (hasDescendant(c, key)) return true;
-            }
-            return false;
-        };
-        if (hasDescendant(dragNodeRef, dropKey)) {
-            console.warn('不能把父节点放到自己的子孙里');
-            return;
-        }
-
-        // 放入非 Group 子级禁止
-        if (!info.dropToGap && dropNodeRef.layer.type !== 'Group') {
-            console.warn('不能把图层放到非 Group 节点子级');
-            return;
-        }
-
-        // ---------------------------
-        // 从 Tree 删除 dragNode
-        // ---------------------------
-        let dragObj: LayerTreeDataNode | null = null;
-        loop(data, dragKey, (item, index, arr) => {
-            dragObj = item as LayerTreeDataNode;
-            arr.splice(index, 1);
-        });
-        if (!dragObj) return;
-
-        // ---------------------------
-        // 操作 OL 图层
-        // ---------------------------
-        try {
-            const dragLayer = getLayerById(map, String(dragKey));
-            const dropLayer = getLayerById(map, String(dropKey));
-            if (!dragLayer || !dropLayer) return;
-
-            const fromCollection = getParentCollection(map, dragLayer);
-            if (!fromCollection) return;
-
-            if (!info.dropToGap) {
-                // ===== 放到 Group 内 =====
-                const targetCollection = dropLayer instanceof LayerGroup ? dropLayer.getLayers() : getParentCollection(map, dropLayer);
-                if (!targetCollection) return;
-
-                const insertIndex = dropLayer instanceof LayerGroup
-                    ? targetCollection.getLength() // 插入到 Group 末尾
-                    : targetCollection.getLength(); // 非 Group 不允许，但保险起见
-                fromCollection.remove(dragLayer);
-                targetCollection.insertAt(insertIndex, dragLayer);
-
-            } else {
-                // ===== 同级拖拽 =====
-                const parentCollection = getParentCollection(map, dropLayer);
-                if (!parentCollection) return;
-
-                let dropIndex = parentCollection.getArray().indexOf(dropLayer);
-                if (dropIndex === -1) dropIndex = parentCollection.getLength();
-
-                // dropPosition 处理
-                let insertIndex = dropIndex;
-                if (dropPosition === 1) insertIndex = dropIndex + 1;
-                else if (dropPosition === 0 && dropLayer instanceof LayerGroup) {
-                    // 插入 Group 内
-                    const targetCollection = dropLayer.getLayers();
-                    fromCollection.remove(dragLayer);
-                    targetCollection.insertAt(targetCollection.getLength(), dragLayer);
-                    updateTree(map);
-                    return;
-                } else if (dropPosition === 0) {
-                    // 非 Group 当作下方插入
-                    insertIndex = dropIndex + 1;
-                }
-
-                // 同父集合拖拽修正
-                const dragIndex = fromCollection === parentCollection ? parentCollection.getArray().indexOf(dragLayer) : -1;
-                if (dragIndex !== -1 && dragIndex < insertIndex) insertIndex -= 1;
-
-                insertIndex = Math.max(0, Math.min(parentCollection.getLength(), insertIndex));
-
-                fromCollection.remove(dragLayer);
-                parentCollection.insertAt(insertIndex, dragLayer);
-            }
-
-        } catch (e) {
-            console.error('同步 OpenLayers 时出错', e);
-        }
-
-        // 更新 Tree UI
-        updateTree(map);
-    };
 
     // const onDrop: TreeProps['onDrop'] = (info) => {
     //     if (!map || !info.dragNode || !info.node) return;
@@ -398,143 +274,161 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
     //     // 3) 刷新 Tree UI
     //     updateTree(map);
     // };
-    const onDrop1: TreeProps['onDrop'] = (info) => {
-        if (!map || !info.dragNode || !info.node) return;
-
-        const dragKey = info.dragNode.key;
+    const onDrop: TreeProps['onDrop'] = (info) => {
+        console.log(info);
         const dropKey = info.node.key;
+        const dragKey = info.dragNode.key;
         const dropPos = info.node.pos.split('-');
-        const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
+        const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]); // the drop position relative to the drop node, inside 0, top -1, bottom 1
 
-        const data = [...treeData];
-
-        // 递归查找节点
-        const loop = (nodes: TreeDataNode[], key: React.Key, callback: (node: TreeDataNode, index: number, arr: TreeDataNode[]) => void) => {
-            for (let i = 0; i < nodes.length; i++) {
-                if (nodes[i].key === key) {
-                    callback(nodes[i], i, nodes);
-                    return;
+        const loop = (
+            data: TreeDataNode[],
+            key: React.Key,
+            callback: (node: TreeDataNode, i: number, data: TreeDataNode[]) => void,
+        ) => {
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].key === key) {
+                    return callback(data[i], i, data);
                 }
-                if (nodes[i].children) loop(nodes[i].children!, key, callback);
+                if (data[i].children) {
+                    loop(data[i].children!, key, callback);
+                }
             }
         };
+        const data = [...treeData];
+        // ---------- 在删除 dragObj 之前，先预计算 tree 的索引信息 ----------
+        let treeDropIndex = -1;
+        let treeSiblingCount = -1;
+        let treeDragIndex = -1;
+        let dropParentArray: TreeDataNode[] | any = null;
+        let dragParentArray: TreeDataNode[] | any = null;
 
-        // 1) 找到 drop 节点
-        let dropNodeRef: LayerTreeDataNode | any = null;
-        loop(data, dropKey, (item) => { dropNodeRef = item as LayerTreeDataNode; });
-        if (!dropNodeRef) return;
-
-        // 2) 放入子级但目标不是 Group，取消
-        if (!info.dropToGap && dropNodeRef.layer.type !== 'Group') {
-            console.warn('不能把图层放到非 Group 节点的子级里，取消操作');
-            return;
-        }
-
-        // 3) 防止父节点放到自己的子孙里
-        let dragCandidate: LayerTreeDataNode | null = null;
-        loop(data, dragKey, (item) => { dragCandidate = item as LayerTreeDataNode; });
-
-        const hasDescendant = (node: LayerTreeDataNode | null, key: React.Key): boolean => {
-            if (!node || !node.children) return false;
-            for (const c of node.children as LayerTreeDataNode[]) {
-                if (c.key === key) return true;
-                if (hasDescendant(c, key)) return true;
-            }
-            return false;
-        };
-
-        if (dragCandidate && hasDescendant(dragCandidate, dropKey)) {
-            console.warn('不能把父节点放到自己的子孙里，取消操作');
-            return;
-        }
-
-        // 4) 找到并删除 dragObj（不改 Tree UI）
-        let dragObj: LayerTreeDataNode | any = null;
-        loop(data, dragKey, (item, index, arr) => {
-            dragObj = item as LayerTreeDataNode;
-            arr.splice(index, 1);
+        // reuse your existing loop to capture parentArray & index for dropKey & dragKey
+        loop(data, dropKey, (_node, i, arr) => {
+            treeDropIndex = i;
+            dropParentArray = arr;
         });
-        if (!dragObj) return;
+        if (dropParentArray) treeSiblingCount = dropParentArray.length;
 
-        // ===== 先操作 OpenLayers =====
+        loop(data, dragKey, (_node, i, arr) => {
+            treeDragIndex = i;
+            dragParentArray = arr;
+        });
+        // Find dragObject
+        let dragObj: TreeDataNode;
+        loop(data, dragKey, (item, index, arr) => {
+            arr.splice(index, 1);
+            dragObj = item;
+        });
+
+        if (!info.dropToGap) {
+            // Drop on the content
+            loop(data, dropKey, (item) => {
+                item.children = item.children || [];
+                // where to insert. New item was inserted to the start of the array in this example, but can be anywhere
+                item.children.unshift(dragObj);
+            });
+        } else {
+            let ar: TreeDataNode[] = [];
+            let i: number;
+            loop(data, dropKey, (_item, index, arr) => {
+                ar = arr;
+                i = index;
+            });
+            if (dropPosition === -1) {
+                // Drop on the top of the drop node
+                ar.splice(i!, 0, dragObj!);
+            } else {
+                // Drop on the bottom of the drop node
+                ar.splice(i! + 1, 0, dragObj!);
+            }
+        }
+        // -------------------
+        // OpenLayers 部分
+        // -------------------
+        if (!map) {
+            return
+        }
         try {
-            const dragLayer = getLayerById(map, String(dragKey));
-            const dropLayer = getLayerById(map, String(dropKey));
+
+            const dragLayer = getLayerById(map, dragKey.toString());
+            const dropLayer = getLayerById(map, dropKey.toString());
             if (!dragLayer || !dropLayer) return;
 
             const fromCollection = getParentCollection(map, dragLayer);
+            if (!fromCollection) return;
 
             if (!info.dropToGap) {
-                // ===== 放到 Group 内 =====
-                const targetCollection = dropLayer instanceof LayerGroup
-                    ? dropLayer.getLayers()
-                    : getParentCollection(map, dropLayer);
-                if (!targetCollection) return;
-
-                const children = [...(dropNodeRef.children || [])];
-                const treeChildIndex = children.findIndex(c => String(c.key) === String(dragKey));
-
-                const insertIndex = children.length - 1 - (treeChildIndex === -1 ? children.length : treeChildIndex);
-
-                if (fromCollection) fromCollection.remove(dragLayer);
-                targetCollection.insertAt(Math.max(0, Math.min(targetCollection.getLength(), insertIndex)), dragLayer);
-
+                // 放入 Group 内
+                if (!(dropLayer instanceof LayerGroup)) {
+                    return;
+                }
+                const targetCollection = dropLayer.getLayers();
+                let insertIndex = targetCollection.getLength(); // 插入末尾
+                if (fromCollection === targetCollection) {
+                    // 如果拖拽的图层就在当前组内
+                    const currentIndex = targetCollection.getArray().indexOf(dragLayer);
+                    // 假设插到末尾，先删除，再插入末尾（长度减1）就变成原来的末尾+1
+                    // 所以需要边界修正
+                    if (currentIndex < insertIndex) {
+                        insertIndex -= 1;
+                    }
+                }
+                fromCollection.remove(dragLayer);
+                targetCollection.insertAt(insertIndex, dragLayer);
             } else {
-                // ===== 同级前/后 =====
+                // ===== 同级拖拽 =====
+                // ===== 同级拖拽 =====
                 const parentCollection = getParentCollection(map, dropLayer);
                 if (!parentCollection) return;
 
-                const findParentInfo = (nodes: LayerTreeDataNode[], key: React.Key): { parentArray: LayerTreeDataNode[]; index: number } | null => {
-                    for (let i = 0; i < nodes.length; i++) {
-                        if (String(nodes[i].key) === String(key)) return { parentArray: nodes, index: i };
-                        if (nodes[i].children) {
-                            const res = findParentInfo(nodes[i].children as LayerTreeDataNode[], key);
-                            if (res) return res;
-                        }
-                    }
-                    return null;
-                };
+                const siblings = parentCollection.getArray(); // OL 底->顶数组
+                const siblingCount = siblings.length;
 
-                const parentInfo = findParentInfo(data, dropKey);
-                let treeDropIndex = parentInfo ? parentInfo.index : parentCollection.getArray().indexOf(dropLayer);
-                let siblingCount = parentInfo ? parentInfo.parentArray.length : parentCollection.getLength();
-
-                // Tree -> OL 倒序转换
-                let dropOlIndex = siblingCount - 1 - treeDropIndex;
-                const desiredInsertIndex = dropPosition === -1 ? dropOlIndex + 1 : dropOlIndex;
-
-                const dragOlIndex = fromCollection === parentCollection ? parentCollection.getArray().indexOf(dragLayer) : -1;
-                if (fromCollection && dragOlIndex !== -1 && dragOlIndex < dropOlIndex) {
-                    dropOlIndex -= 1; // remove 后左移
+                // 尝试从 tree 预计算的值映射到 OL（如果你已有 treeDropIndex/treeSiblingCount）
+                let dropOlIndex: number;
+                if (typeof treeDropIndex === 'number' && treeDropIndex !== -1 && typeof treeSiblingCount === 'number' && treeSiblingCount !== -1) {
+                    dropOlIndex = Math.max(0, treeSiblingCount - 1 - treeDropIndex);
+                } else {
+                    // fallback：直接用 OL 的索引
+                    const olIdx = siblings.indexOf(dropLayer);
+                    dropOlIndex = olIdx === -1 ? siblingCount - 1 : olIdx;
                 }
 
-                if (fromCollection) fromCollection.remove(dragLayer);
-                parentCollection.insertAt(Math.max(0, Math.min(parentCollection.getLength(), desiredInsertIndex)), dragLayer);
+                // ---- 关键修正：上方 (-1) 对应 OL 上方 insertIndex = dropOlIndex + 1 ----
+                let insertIndex = (dropPosition === -1) ? (dropOlIndex + 1) : dropOlIndex;
+                debugger;
+                // 说明：dropPosition === -1 -> 上方 -> OL 插入到目标之后（索引+1）
+                //       dropPosition === 1  -> 下方 -> OL 插入到目标之前（索引不变）
+                console.debug('[onDrop] dropPosition, dropOlIndex, preAdjust insertIndex', dropPosition, dropOlIndex, insertIndex);
+
+                //同父集合修正（在 remove 之前用 OL 的索引判断）
+                const dragOlIndex = (fromCollection === parentCollection) ? siblings.indexOf(dragLayer) : -1;
+                if (dragOlIndex !== -1 && dragOlIndex < insertIndex) {
+                    insertIndex -= 1;
+                }
+
+                console.debug('[onDrop] dragOlIndex, adjusted insertIndex', dragOlIndex, insertIndex);
+
+                // 边界保护
+                insertIndex = Math.max(0, Math.min(parentCollection.getLength(), insertIndex));
+
+                // 最后执行移动
+                fromCollection.remove(dragLayer);
+                parentCollection.insertAt(insertIndex, dragLayer);
             }
         } catch (e) {
-            console.error('同步 OpenLayers 时出错', e);
+            console.error("同步 OpenLayers 时出错", e);
         }
 
-        // ===== 再更新 Tree UI =====
-        if (!info.dropToGap) {
-            dropNodeRef.children = dropNodeRef.children || [];
-            dropNodeRef.children.unshift(dragObj);
-        } else {
-            let arrRef: LayerTreeDataNode[] = [];
-            let idx = 0;
-            loop(data, dropKey, (_item, index, arr) => {
-                arrRef = arr as LayerTreeDataNode[];
-                idx = index;
-            });
-            if (dropPosition === -1) {
-                arrRef.splice(idx, 0, dragObj);
-            } else {
-                arrRef.splice(idx + 1, 0, dragObj);
-            }
-        }
-        //setTreeData(data);
+        // -------------------
+        // 最后刷新 UI
+        // -------------------
         updateTree(map);
+        // setTreeData(data);
     };
+
+
     /**
      * 紧更新树，没有操作ol,仅用做对比
      * @param info
@@ -647,7 +541,10 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
     return (
         <div>图层管理
             <Tree
-                draggable
+                draggable={{
+                    icon: false, // 不显示默认的 6 个点
+                    //nodeDraggable: (node) => node.draggable ?? true // 可选择哪些节点可拖
+                }}
                 checkable
                 checkStrictly={!linkParentChild}
                 onSelect={onSelect}
