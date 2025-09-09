@@ -3,6 +3,7 @@ import MapComponent from "../MapComponent/MapComponent";
 import StatusBar from "../StatusBar/StatusBar";
 import styles from "./AppLayout.module.css";
 import LayerManager from "../LayerManager/LayerManager";
+import { RibbonMenu } from "../Menu/RibbonMenu";
 
 export default function AppLayout() {
     const [map, setMap] = useState<any>(null);
@@ -36,7 +37,11 @@ export default function AppLayout() {
     }, []);
     return (
         <div className={styles.appLayout}>
-            <header className={styles.ribbon}>Ribbon 菜单栏</header>
+            <header className={styles.ribbon}>
+                <RibbonMenu onAction={function (type: string): void {
+                    throw new Error("Function not implemented.");
+                } }></RibbonMenu>
+            </header>
             <div className={styles.main}>
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
                    

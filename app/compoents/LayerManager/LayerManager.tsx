@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import MapComponent from "../MapComponent/MapComponent";
 import { Map } from "ol";
-import { Tree, type TreeDataNode, type TreeProps } from 'antd';
+import { Button, Dropdown, Tooltip, Tree, type MenuProps, type TreeDataNode, type TreeProps } from 'antd';
 import { serializeMapLayers } from 'openlayers-serializer';
 import type { IBaseLayer, IGroupLayer } from "openlayers-serializer";
 import { getLayerById, setLayerAndChildrenVisible, getParentLayer, getParentCollection } from "~/common/openlayers/layer";
 import LayerGroup from "ol/layer/Group";
-import { EyeOutlined, FolderAddOutlined, LoadingOutlined, SettingFilled, SmileOutlined, SyncOutlined } from '@ant-design/icons'
+import { CompressOutlined, DeleteOutlined, DownOutlined, ExpandOutlined, EyeInvisibleOutlined, EyeOutlined, FolderAddOutlined, LoadingOutlined, MinusSquareOutlined, PlusSquareOutlined, SettingFilled, SmileOutlined, SyncOutlined } from '@ant-design/icons'
 import { Space } from 'antd';
+import type { EventDataNode } from "antd/es/tree";
 interface LayerManagerProps {
     map?: Map;
     /**是否联动子图层 */
@@ -55,11 +56,22 @@ export function getVisibleKeys(layers: IBaseLayer[]): string[] {
     });
     return keys;
 }
-
+// 扁平化 Tree keys（用于 Shift 连选）
+const flattenTreeKeys = (nodes: TreeDataNode[]): string[] => {
+    let keys: string[] = [];
+    for (const node of nodes) {
+        keys.push(String(node.key));
+        if (node.children) {
+            keys = keys.concat(flattenTreeKeys(node.children));
+        }
+    }
+    return keys;
+};
 export default function LayerManager({ map, linkParentChild = false }: LayerManagerProps) {
     const [layers, setLayers] = useState<any[]>([]);
     const [treeData, setTreeData] = useState<LayerTreeDataNode[]>([]);
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
+    const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
     useEffect(() => {
         if (!map) {
             return;
@@ -82,8 +94,58 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
             layers.un(listenerKey.type as "change:length", listenerKey.listener);
         };
     }, [map]);
-    const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
-        console.log('selected', selectedKeys, info);
+    const handleSelect = (
+        keys: React.Key[],
+        info: {
+            selected: boolean;
+            node: EventDataNode<LayerTreeDataNode>;
+            nativeEvent: MouseEvent;
+        }
+    ) => {
+        const { key } = info.node;
+        const { ctrlKey, metaKey, shiftKey } = info.nativeEvent;
+
+        const isMultiSelectKey = ctrlKey || metaKey; // Windows: Ctrl, macOS: Cmd
+
+        if (shiftKey && selectedKeys.length > 0) {
+            // Shift 连选
+            const allKeys = flattenTreeKeys(treeData);
+            const lastKey = selectedKeys[selectedKeys.length - 1];
+            const start = allKeys.indexOf(String(lastKey));
+            const end = allKeys.indexOf(String(key));
+            if (start !== -1 && end !== -1) {
+                const range = allKeys.slice(Math.min(start, end), Math.max(start, end) + 1);
+                setSelectedKeys(Array.from(new Set([...selectedKeys, ...range])));
+            }
+        } else if (isMultiSelectKey) {
+            // Cmd / Ctrl 切换选中
+            setSelectedKeys(prev =>
+                prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+            );
+        } else {
+            // 单选
+            setSelectedKeys([key]);
+        }
+
+        // --------------------------
+        // 同步到 OL Layer（示例逻辑，可自定义）
+        // --------------------------
+        if (map) {
+            // 遍历 Tree 数据找到被选中节点对应的 layer
+            // const selectedLayers: BaseLayer[] = [];
+            // const loop = (nodes: LayerTreeNode[]) => {
+            //     for (const node of nodes) {
+            //         if (selectedKeys.includes(node.key) && node.layer) {
+            //             selectedLayers.push(node.layer);
+            //         }
+            //         if (node.children) loop(node.children);
+            //     }
+            // };
+            // loop(treeData);
+
+            // TODO: 对 selectedLayers 执行批量操作，比如可见性切换
+            // selectedLayers.forEach(layer => layer.setVisible(true/false));
+        }
     };
 
     const onCheck: TreeProps['onCheck'] = (checkedKeys, info) => {
@@ -428,109 +490,6 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
         updateTree(map);
         // setTreeData(data);
     };
-
-
-    /**
-     * 紧更新树，没有操作ol,仅用做对比
-     * @param info
-     * @returns 
-     */
-    const onDropJustTree: TreeProps['onDrop'] = (info) => {
-        if (!map || !info.dragNode || !info.node) return;
-
-        const dragKey = info.dragNode.key;
-        const dropKey = info.node.key;
-        const dropPos = info.node.pos.split('-');
-        const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
-
-        const data = [...treeData];
-
-        // 查找节点的递归函数
-        const loop = (
-            nodes: TreeDataNode[],
-            key: React.Key,
-            callback: (node: TreeDataNode, index: number, arr: TreeDataNode[]) => void
-        ) => {
-            for (let i = 0; i < nodes.length; i++) {
-                if (nodes[i].key === key) {
-                    callback(nodes[i], i, nodes);
-                    return;
-                }
-                if (nodes[i].children) {
-                    loop(nodes[i].children!, key, callback);
-                }
-            }
-        };
-        // 1) 先找到 drop 节点（只查，不改）
-        let dropNodeRef: LayerTreeDataNode | any = null;
-        loop(data, dropKey, (item) => {
-            dropNodeRef = item as LayerTreeDataNode;
-        });
-        if (!dropNodeRef) {
-            return;
-        }
-
-        // 2) 如果是“放入子级（不是 gap）”但目标不是 Group，则直接拒绝
-        if (!info.dropToGap && dropNodeRef.layer.type !== 'Group') {
-            console.warn('不能把图层放到非 Group 节点的子级里，取消操作');
-            return;
-        }
-
-        // 额外：先找到拖拽节点（但不删除），用于判断是否把父节点放到自己的子孙里
-        let dragCandidate: LayerTreeDataNode | null = null;
-        loop(data, dragKey, (item) => {
-            dragCandidate = item as LayerTreeDataNode;
-        });
-
-        // 防止把节点放到自己的子孙里
-        const hasDescendant = (node: LayerTreeDataNode | null, key: React.Key): boolean => {
-            if (!node || !node.children) return false;
-            for (const c of node.children as LayerTreeDataNode[]) {
-                if (c.key === key) return true;
-                if (hasDescendant(c, key)) return true;
-            }
-            return false;
-        };
-        if (dragCandidate && hasDescendant(dragCandidate, dropKey)) {
-            console.warn('不能把父节点放到自己的子孙里，取消操作');
-            return;
-        }
-
-        // 3) 找到并删除 dragObj（真正移除）
-        let dragObj: LayerTreeDataNode | any = null;
-        loop(data, dragKey, (item, index, arr) => {
-            dragObj = item as LayerTreeDataNode;
-            arr.splice(index, 1);
-        });
-        if (!dragObj) return;
-
-        // 4) 根据 dropToGap / dropPosition 插入到 treeData（先只改 UI）
-        if (!info.dropToGap) {
-            // 放到目标节点的子级（之前已保证目标是 Group）
-            dropNodeRef.children = dropNodeRef.children || [];
-            // 这里使用 unshift（放在第一个子项）；如果你希望放到末尾可以改为 push 或 splice 指定位置
-            dropNodeRef.children.unshift(dragObj);
-        } else {
-            // 同级上/下
-            let arrRef: LayerTreeDataNode[] = [];
-            let idx = 0;
-            loop(data, dropKey, (_item, index, arr) => {
-                arrRef = arr as LayerTreeDataNode[];
-                idx = index;
-            });
-            if (dropPosition === -1) {
-                // 放在上方
-                arrRef.splice(idx, 0, dragObj);
-            } else {
-                // 放在下方
-                arrRef.splice(idx + 1, 0, dragObj);
-            }
-        }
-
-
-        // 更新 treeData
-        setTreeData(data);
-    };
     function updateTree(map: Map) {
         const newDtos = serializeMapLayers(map);
         setLayers(newDtos);
@@ -538,18 +497,83 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
         setTreeData(layerTree);
         setCheckedKeys(getVisibleKeys(newDtos));
     }
-
+    //todo set icon
+    const menu: MenuProps = {
+        items: [
+            {
+                key: 'ShowAllLayers',
+                label: (
+                    <span>
+                        <EyeOutlined style={{ marginRight: 8 }} />
+                        Show All Layers
+                    </span>
+                ),
+            },
+            {
+                key: 'HideAllLayers',
+                label: (
+                    <span>
+                        <EyeInvisibleOutlined style={{ marginRight: 8 }} />
+                        Hide All Layers
+                    </span>
+                ),
+            },
+            {
+                key: 'ShowSelectedLayers',
+                label: (
+                    <span>
+                        <EyeInvisibleOutlined style={{ marginRight: 8 }} />
+                        Show Selected Layers
+                    </span>
+                ),
+            },
+            {
+                key: 'HideSelectedLayers',
+                label: (
+                    <span>
+                        <EyeInvisibleOutlined style={{ marginRight: 8 }} />
+                        Hide Selected Layers
+                    </span>
+                ),
+            },
+            {
+                key: 'ToggleSelectedLayers',
+                label: (
+                    <span>
+                        <EyeInvisibleOutlined style={{ marginRight: 8 }} />
+                        Hide All Layers
+                    </span>
+                ),
+            },
+        ],
+        onClick: ({ key }) => {
+            if (key === 'expandAll') {
+                console.log('展开全部');
+                // expandAll();
+            } else if (key === 'collapseAll') {
+                console.log('折叠全部');
+                // collapseAll();
+            }
+        },
+    };
     return (
         <div>图层管理
             <div>
                 <Space>
-                    <FolderAddOutlined />
-                    <EyeOutlined />
-                    <SettingFilled />
-                    <SmileOutlined />
-                    {/* <SyncOutlined spin />
-                    <SmileOutlined rotate={180} /> */}
-                    {/* <LoadingOutlined /> */}
+                    <Tooltip title="Add Group"> <Button type="text" icon={<FolderAddOutlined />} shape="circle" size="small" />
+                    </Tooltip>
+                    <Tooltip title="Mange Map Themes">
+                        <Dropdown menu={menu} trigger={['click']}>
+                            <Button type="text" icon={<EyeOutlined />} shape="circle" size="small" />
+                        </Dropdown>
+
+                    </Tooltip>
+                    <Tooltip title="Expand All"> <Button type="text" icon={<PlusSquareOutlined />} shape="circle" size="small" />
+                    </Tooltip>
+                    <Tooltip title="Collapse All"> <Button type="text" icon={<MinusSquareOutlined />} shape="circle" size="small" />
+                    </Tooltip>
+                    <Tooltip title="Remove Layer/Group"> <Button type="text" icon={<DeleteOutlined />} shape="circle" size="small" />
+                    </Tooltip>
                 </Space>
             </div>
             <Tree
@@ -559,7 +583,9 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
                 }}
                 checkable
                 checkStrictly={!linkParentChild}
-                onSelect={onSelect}
+                multiple
+                onSelect={handleSelect}
+                selectedKeys={selectedKeys}
                 onDrop={onDrop}
                 checkedKeys={checkedKeys}
                 onCheck={onCheck}
