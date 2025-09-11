@@ -72,6 +72,7 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
     const [treeData, setTreeData] = useState<LayerTreeDataNode[]>([]);
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
     const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
+    const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
     useEffect(() => {
         if (!map) {
             return;
@@ -339,6 +340,7 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
     // };
     const onDrop: TreeProps['onDrop'] = (info) => {
         console.log(info);
+        
         const dropKey = info.node.key;
         const dragKey = info.dragNode.key;
         const dropPos = info.node.pos.split('-');
@@ -556,11 +558,58 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
             }
         },
     };
+    // 获取所有 key（递归）
+    const getAllKeys = (data: any[]): React.Key[] => {
+        let keys: React.Key[] = [];
+        data.forEach((item) => {
+            keys.push(item.key);
+            if (item.children) {
+                keys = keys.concat(getAllKeys(item.children));
+            }
+        });
+        return keys;
+    };
+    // 展开全部
+    const expandAll = () => {
+        setExpandedKeys(getAllKeys(treeData));
+    };
+
+    // 折叠全部
+    const collapseAll = () => {
+        setExpandedKeys([]);
+    };
+    const addGroup = () => {
+        if (!map) {
+            return
+        }
+        const layers = map.getLayers().getArray();
+        const groups = layers.filter(l => l instanceof LayerGroup);
+
+        // 已有分组的名字集合
+        const existingNames = groups.map(g => g.get("name"));
+
+        // 找最小可用索引
+        let index = 1;
+        while (existingNames.includes(`group${index}`)) {
+            index++;
+        }
+
+        let layerGroup = new LayerGroup();
+        layerGroup.setProperties({
+            id: crypto.randomUUID(),
+            name: `group${index}`,
+        });
+        map.addLayer(layerGroup);
+        updateTree(map);
+    }
+    const removeLayer = () => {
+
+    }
     return (
         <div>图层管理
             <div>
                 <Space>
-                    <Tooltip title="Add Group"> <Button type="text" icon={<FolderAddOutlined />} shape="circle" size="small" />
+                    <Tooltip title="Add Group"> <Button type="text" icon={<FolderAddOutlined />} onClick={addGroup} shape="circle" size="small" />
                     </Tooltip>
                     <Tooltip title="Mange Map Themes">
                         <Dropdown menu={menu} trigger={['click']}>
@@ -568,9 +617,9 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
                         </Dropdown>
 
                     </Tooltip>
-                    <Tooltip title="Expand All"> <Button type="text" icon={<PlusSquareOutlined />} shape="circle" size="small" />
+                    <Tooltip title="Expand All"> <Button type="text" icon={<PlusSquareOutlined onClick={expandAll} />} shape="circle" size="small" />
                     </Tooltip>
-                    <Tooltip title="Collapse All"> <Button type="text" icon={<MinusSquareOutlined />} shape="circle" size="small" />
+                    <Tooltip title="Collapse All"> <Button type="text" icon={<MinusSquareOutlined onClick={collapseAll} />} shape="circle" size="small" />
                     </Tooltip>
                     <Tooltip title="Remove Layer/Group"> <Button type="text" icon={<DeleteOutlined />} shape="circle" size="small" />
                     </Tooltip>
@@ -589,6 +638,8 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
                 onDrop={onDrop}
                 checkedKeys={checkedKeys}
                 onCheck={onCheck}
+                expandedKeys={expandedKeys}
+                onExpand={setExpandedKeys}
                 treeData={treeData}
             />
         </div>

@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import MapComponent from "../MapComponent/MapComponent";
 import StatusBar from "../StatusBar/StatusBar";
 import styles from "./AppLayout.module.css";
-import LayerManager from "../LayerManager/LayerManager";
-import { RibbonMenu } from "../Menu/RibbonMenu";
+import LayerManager from "../layerTree/LayerManager";
+import { Menu } from "../Menu/Menu";
 
 export default function AppLayout() {
     const [map, setMap] = useState<any>(null);
@@ -38,9 +38,9 @@ export default function AppLayout() {
     return (
         <div className={styles.appLayout}>
             <header className={styles.ribbon}>
-                <RibbonMenu onAction={function (type: string): void {
+                <Menu onAction={function (type: string): void {
                     throw new Error("Function not implemented.");
-                } }></RibbonMenu>
+                } }></Menu>
             </header>
             <div className={styles.main}>
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
