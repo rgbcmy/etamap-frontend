@@ -1,6 +1,7 @@
-import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps } from 'antd';
+import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps, Popconfirm } from 'antd';
 import type { LayerTreeDataNode } from '../model/EtmLayerTreeModel';
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, FolderAddOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@ant-design/icons';
+import { useState } from 'react';
 
 interface LayerTreeViewProps {
     checkStrictly?: boolean
@@ -13,12 +14,40 @@ interface LayerTreeViewProps {
     onDrop: (info: any) => void;
     onExpand: (keys: React.Key[]) => void;
     onAddGroup: () => void;
-    onRemoveLayer?: () => void;
+    onRemoveLayer: () => void;
     onExpandAll: () => void;
     onCollapseAll: () => void;
+    onShowAllLayers: () => void;
+    onHideAllLayers: () => void;
+    onShowSelectedLayers: () => void;
+    onHideSelectedLayers: () => void;
+    onToggleSelectedLayers: () => void;
 }
 
 export function LayerTreeView({ ...props }: LayerTreeViewProps) {
+    const [open, setOpen] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+
+    const showPopconfirm = () => {
+        if (props.selectedKeys.length == 0) {
+            //todo 需要给出提示选择图层
+            console.log('please select layer')
+            return;
+        }
+        setOpen(true);
+    };
+
+    const handleOk = () => {
+        setConfirmLoading(true);
+        props.onRemoveLayer();
+        setOpen(false);
+        setConfirmLoading(false);
+    };
+
+    const handleCancel = () => {
+        console.log('Clicked cancel button');
+        setOpen(false);
+    };
     const menu: MenuProps = {
         items: [
             {
@@ -29,6 +58,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                         Show All Layers
                     </span>
                 ),
+
             },
             {
                 key: 'HideAllLayers',
@@ -62,19 +92,27 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                        Hide All Layers
+                        Toggle Selected Layers
                     </span>
                 ),
             },
         ],
         onClick: ({ key }) => {
-            if (key === 'expandAll') {
-                console.log('展开全部');
-                props.onExpandAll();
+            debugger
+            if (key === 'ShowAllLayers') {
+                props.onShowAllLayers();
                 // expandAll();
-            } else if (key === 'collapseAll') {
-                console.log('折叠全部');
-                // collapseAll();
+            } else if (key === 'HideAllLayers') {
+                props.onHideAllLayers()
+
+            } else if (key === 'ShowSelectedLayers') {
+                props.onShowSelectedLayers()
+
+            } else if (key === 'HideSelectedLayers') {
+                props.onHideSelectedLayers()
+
+            } else if (key === 'ToggleSelectedLayers') {
+                props.onToggleSelectedLayers()
             }
         },
     };
@@ -94,7 +132,18 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                     </Tooltip>
                     <Tooltip title="Collapse All"> <Button type="text" icon={<MinusSquareOutlined onClick={props.onCollapseAll} />} shape="circle" size="small" />
                     </Tooltip>
-                    <Tooltip title="Remove Layer/Group"> <Button type="text" icon={<DeleteOutlined />} shape="circle" size="small" />
+                    <Tooltip title="Remove Layer/Group">
+                        <Popconfirm
+                            title="Title"
+                            description="sure you want to delete the layers?"
+                            open={open}
+                            onConfirm={handleOk}
+                            okButtonProps={{ loading: confirmLoading }}
+                            onCancel={handleCancel}
+                        >
+                            <Button type="text" icon={<DeleteOutlined />} onClick={showPopconfirm} shape="circle" size="small" />
+                        </Popconfirm>
+
                     </Tooltip>
                 </Space>
             </div>

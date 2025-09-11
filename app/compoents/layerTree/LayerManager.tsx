@@ -61,11 +61,35 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
         if (!map) {
             return;
         }
-        layerActions?.addGroup();
+        //逻辑是当选中多个图层或者(一个图层 但他是图层不是图层组的时候)是新建一个图层组，把选中的都放里面；否则则是添加一个空的图层组
+        let groupInfo = layerActions?.addGroup();
+        updateTree(map);
+        //todo 展开这个组
+        if (groupInfo) {
+            if (groupInfo.parentGroupId) {
+                setExpandedKeys([...expandedKeys, groupInfo.parentGroupId])
+            } else {
+                setExpandedKeys([...expandedKeys, groupInfo?.newGroupId])
+            }
+        }
+
+
+
     }
     const handleExpend = (keys: React.Key[]) => {
         debugger
         setExpandedKeys(keys)
+    }
+    const handleSelect = (keys: React.Key[]) => {
+        layerActions?.setSelectedLayerIds(keys.map(key => key.toString()))
+        setSelectedKeys(keys)
+    }
+    const handleRemoveLayer = () => {
+
+        selectedKeys.forEach((key) => {
+            layerActions?.removeLayerOrGroup(key.toString())
+        })
+
     }
     return (
         <LayerTreeView
@@ -75,12 +99,49 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
             selectedKeys={selectedKeys}
             expandedKeys={expandedKeys}
             onCheck={handleCheck}
-            onSelect={setSelectedKeys}
+            onSelect={handleSelect}
             onDrop={handleDrop}
             onExpand={handleExpend}
             onAddGroup={handleAddGroup}
             onExpandAll={() => setExpandedKeys(flattenTreeKeys(treeData))}
             onCollapseAll={() => setExpandedKeys([])}
+            onRemoveLayer={handleRemoveLayer}
+            onShowAllLayers={() => {
+                if (!map) {
+                    return
+                }
+                layerActions?.showAllLayers();
+                updateTree(map)
+            }}
+            onHideAllLayers={() => {
+                if (!map) {
+                    return
+                }
+                layerActions?.hideAllLayers()
+                updateTree(map)
+            }}
+            onShowSelectedLayers={() => {
+                if (!map) {
+                    return
+                }
+                layerActions?.showSelectedLayers();
+                updateTree(map)
+            }}
+            onHideSelectedLayers={() => {
+                if (!map) {
+                    return
+                }
+                layerActions?.hideSelectedLayers()
+                updateTree(map)
+            }}
+            onToggleSelectedLayers={() => {
+
+                if (!map) {
+                    return
+                }
+                layerActions?.toggleSelectedLayers()
+                updateTree(map)
+            }}
         />
     )
 }
