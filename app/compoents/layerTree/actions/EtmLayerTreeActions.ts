@@ -26,7 +26,7 @@ export class EtmLayerTreeActions {
 
         // 情况 1：选中多个图层或单个图层(并且不是图层组) → groupSelected
         if (selectedIds.length > 1 || (selectedIds.length === 1 && getLayerById(this.map, selectedIds[0]) instanceof Layer)) {
-            debugger
+            
             const newGroup = new LayerGroup();
             newGroup.setProperties({ id: crypto.randomUUID(), name: name || this.generateUniqueGroupName() });
 
@@ -104,7 +104,7 @@ export class EtmLayerTreeActions {
             return
         }
         //设置图层相关可见
-        debugger
+        
         if (!linkParentChild) {
             // 方案 A：不做父子联动
             layer.setVisible(checked);
@@ -130,7 +130,7 @@ export class EtmLayerTreeActions {
     moveLayer(
         { dragKey, dropKey, dropToGap, dropPosition }: MoveLayerParams,
     ) {
-        debugger
+        
         if (!this.map) return;
 
         const dragLayer = getLayerById(this.map, dragKey);
@@ -205,7 +205,7 @@ export class EtmLayerTreeActions {
 
         fromCollection.remove(dragLayer);
         parentCollection.insertAt(insertIndex, dragLayer);
-        debugger
+        
     }
 
     removeLayerOrGroup(layerId: string) {
@@ -263,6 +263,7 @@ export class EtmLayerTreeActions {
     }
 
     renameLayer(id:string,name:string){
+        
       let layer=  getLayerById(this.map,id);
       if(!layer){
         console.warn(`not found the layer`);

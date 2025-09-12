@@ -1,7 +1,7 @@
-import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps, Popconfirm, Input } from 'antd';
+import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps, Popconfirm, Input, Menu } from 'antd';
 import type { LayerTreeDataNode } from '../model/EtmLayerTreeModel';
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, FolderAddOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface LayerTreeViewProps {
     checkStrictly?: boolean
@@ -30,6 +30,26 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [editingKey, setEditingKey] = useState<React.Key | null>(null);
     const [tempName, setTempName] = useState("");
+    // 右键菜单控制
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        items: MenuProps['items'];
+        node?: any;
+    } | null>(null);
+
+    // 点击空白处关闭右键菜单
+    useEffect(() => {
+        const handleClickOutside = () => setContextMenu(null);
+        if (contextMenu) {
+            document.addEventListener('click', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [contextMenu]);
+
+
     const showPopconfirm = () => {
         if (props.selectedKeys.length == 0) {
             //todo 需要给出提示选择图层
@@ -52,6 +72,25 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
     };
     const tileRender =
         (node: any) => {
+            //右键菜单
+            const nodeMenu: MenuProps = {
+                items: [
+                    { key: "rename", label: "Rename" },
+                    { key: "remove", label: "Remove" },
+                    { type: "divider" },
+                    { key: "addGroup", label: "Add Subgroup" },
+                ],
+                onClick: ({ key }) => {
+                    if (key === "rename") {
+                        setEditingKey(node.key);
+                        setTempName(node.title as string);
+                    } else if (key === "remove") {
+                        props.onRemoveLayer();
+                    } else if (key === "addGroup") {
+                        props.onAddGroup();
+                    }
+                },
+            };
             if (editingKey === node.key) {
                 return (
                     <Input
@@ -73,7 +112,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
             return (
                 <span
                     onDoubleClick={() => {
-                        debugger
+                        
                         setEditingKey(node.key);
                         setTempName(node.title as string);
                     }}
@@ -82,6 +121,65 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 </span>
             );
         }
+    // 右键菜单触发
+    const handleRightClick = ({ event, node }: any) => {
+        
+        event.preventDefault();
+        // 先选中右键点击的节点
+        props.onSelect([node.key], { selected: true, node,nativeEvent: event });
+
+        const isGroup = node?.isGroup; // 你在 treeData 里定义的标记
+        const items: MenuProps['items'] = [];
+
+        if (isGroup) {
+            items.push(
+                { key: 'rename', label: '重命名组' },
+                { key: 'addLayer', label: '添加子图层' },
+                { key: 'addGroup', label: '添加子组' },
+                { key: 'remove', label: '删除组' }
+            );
+        } else if (node) {
+            items.push(
+                { key: 'rename', label: '重命名图层' },
+                {
+                    key: 'toggleVisibility',
+                    label: node.visible ? '隐藏图层' : '显示图层'
+                },
+                { key: 'remove', label: '删除图层' }
+            );
+        } else {
+            // 空白区域
+            items.push({ key: 'addGroup', label: '新建组' });
+        }
+
+        setContextMenu({ x: event.clientX, y: event.clientY, items, node });
+    };
+
+    const handleContextMenuClick: MenuProps['onClick'] = ({ key }) => {
+        if (!contextMenu) return;
+        const node = contextMenu.node;
+
+        switch (key) {
+            case 'rename':
+                setEditingKey(node.key);
+                setTempName(node.title);
+                break;
+            case 'remove':
+                props.onRemoveLayer();
+                break;
+            case 'addGroup':
+                props.onAddGroup();
+                break;
+            case 'addLayer':
+                console.log('TODO: 添加子图层到组', node.key);
+                break;
+            case 'toggleVisibility':
+                props.onToggleSelectedLayers();
+                break;
+        }
+
+        setContextMenu(null);
+    };
     const menu: MenuProps = {
         items: [
             {
@@ -132,7 +230,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
             },
         ],
         onClick: ({ key }) => {
-            debugger
+            
             if (key === 'ShowAllLayers') {
                 props.onShowAllLayers();
                 // expandAll();
@@ -151,8 +249,8 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
         },
     };
     return (
-        <div>
-            <div>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <div style={{ flexShrink: 0 }}>
                 <Space>
                     <Tooltip title="Add Group"> <Button type="text" icon={<FolderAddOutlined />} onClick={props.onAddGroup} shape="circle" size="small" />
                     </Tooltip>
@@ -182,6 +280,8 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 </Space>
             </div>
             <Tree
+                rootStyle={{ flex: 1, overflow: 'auto' }}
+                titleRender={tileRender}
                 checkStrictly={props.checkStrictly}
                 checkable
                 multiple
@@ -197,7 +297,29 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 onCheck={props.onCheck as any}
                 onDrop={props.onDrop}
                 onExpand={props.onExpand}
+                onRightClick={handleRightClick}
             />
+
+            {/* 自定义右键菜单 */}
+            {contextMenu && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: contextMenu.y,
+                        left: contextMenu.x,
+                        zIndex: 1000,
+                        background: '#fff',
+                        border: '1px solid #ccc',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    }}
+                >
+                    <Menu
+                        items={contextMenu.items}
+                        onClick={handleContextMenuClick}
+                        selectable={false}
+                    />
+                </div>
+            )}
         </div>
     )
 }

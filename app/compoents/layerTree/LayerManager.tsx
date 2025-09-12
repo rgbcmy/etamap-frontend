@@ -5,6 +5,7 @@ import { serializeMapLayers } from "openlayers-serializer";
 import { EtmLayerTreeActions, type MoveLayerParams } from './actions/EtmLayerTreeActions';
 import { LayerTreeView } from './view/EtmLayerTreeView';
 import type { TreeDataNode, TreeProps } from 'antd';
+import type { EventDataNode } from 'antd/es/tree';
 interface LayerManagerProps { map?: Map; /**是否联动子图层 */ linkParentChild?: boolean; }
 export default function LayerManager({ map, linkParentChild = false }: LayerManagerProps) {
     const [layerActions, setLayerActions] = useState<EtmLayerTreeActions | null>(null);
@@ -77,18 +78,64 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
 
     }
     const handleExpend = (keys: React.Key[]) => {
-        debugger
+        
         setExpandedKeys(keys)
     }
-    const handleSelect = (keys: React.Key[]) => {
-        layerActions?.setSelectedLayerIds(keys.map(key => key.toString()))
-        setSelectedKeys(keys)
-    }
+    const handleSelect = (
+        keys: React.Key[],
+        info: {
+            selected: boolean;
+            node: EventDataNode<LayerTreeDataNode>;
+            nativeEvent: MouseEvent;
+        }
+    ) => {
+        let resKeys: React.Key[] = [];
+        const { key } = info.node;
+        const { ctrlKey, metaKey, shiftKey, button } = info.nativeEvent; // button: 0 左键，2 右键
+        const isMultiSelectKey = ctrlKey || metaKey; // Windows: Ctrl, macOS: Cmd
+        const isRightClick = button === 2;
+        if (isRightClick) {
+
+            // 右键逻辑
+            if (selectedKeys.includes(key)) {
+                // 已经选中 → 不处理
+                resKeys = [...selectedKeys];
+            } else {
+                // 没有选中 → 单选当前节点
+                resKeys = [key];
+            }
+        } else if (shiftKey && selectedKeys.length > 0) {
+            // Shift 连选
+            const allKeys = flattenTreeKeys(treeData);
+            const lastKey = selectedKeys[selectedKeys.length - 1];
+            const start = allKeys.indexOf(String(lastKey));
+            const end = allKeys.indexOf(String(key));
+            if (start !== -1 && end !== -1) {
+                const range = allKeys.slice(Math.min(start, end), Math.max(start, end) + 1);
+                resKeys = (Array.from(new Set([...selectedKeys, ...range])));
+            }
+        } else if (isMultiSelectKey) {
+            // Cmd / Ctrl 切换选中
+            if (selectedKeys.includes(key)) {
+                resKeys = selectedKeys.filter(k => k !== key); // 取消选中
+            } else {
+                resKeys = [...selectedKeys, key]; // 加入选中
+            }
+        } else {
+            // 单选
+            resKeys = [key];
+        }
+        layerActions?.setSelectedLayerIds(resKeys.map(key => key.toString()))
+        setSelectedKeys(resKeys);
+    };
+
+
     const handleRemoveLayer = () => {
 
         selectedKeys.forEach((key) => {
             layerActions?.removeLayerOrGroup(key.toString())
         })
+
 
     }
     return (
@@ -143,7 +190,8 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
                 updateTree(map)
             }}
             onRename={(id, newName) => {
-                if(!map){
+                
+                if (!map) {
                     return
                 }
                 layerActions?.renameLayer(id, newName);

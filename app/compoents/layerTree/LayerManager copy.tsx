@@ -103,12 +103,14 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
             nativeEvent: MouseEvent;
         }
     ) => {
+        
         const { key } = info.node;
         const { ctrlKey, metaKey, shiftKey } = info.nativeEvent;
 
         const isMultiSelectKey = ctrlKey || metaKey; // Windows: Ctrl, macOS: Cmd
 
         if (shiftKey && selectedKeys.length > 0) {
+            
             // Shift 连选
             const allKeys = flattenTreeKeys(treeData);
             const lastKey = selectedKeys[selectedKeys.length - 1];
@@ -164,7 +166,7 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
             return
         }
         //设置图层相关可见
-        debugger
+        
         if (!linkParentChild) {
             // 方案 A：不做父子联动
             layer.setVisible(info.checked);
@@ -462,7 +464,7 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
 
                 // ---- 关键修正：上方 (-1) 对应 OL 上方 insertIndex = dropOlIndex + 1 ----
                 let insertIndex = (dropPosition === -1) ? (dropOlIndex + 1) : dropOlIndex;
-                debugger;
+                
                 // 说明：dropPosition === -1 -> 上方 -> OL 插入到目标之后（索引+1）
                 //       dropPosition === 1  -> 下方 -> OL 插入到目标之前（索引不变）
                 console.debug('[onDrop] dropPosition, dropOlIndex, preAdjust insertIndex', dropPosition, dropOlIndex, insertIndex);
