@@ -261,4 +261,13 @@ export class EtmLayerTreeActions {
             if (layer) layer.setVisible(!layer.getVisible());
         });
     }
+
+    renameLayer(id:string,name:string){
+      let layer=  getLayerById(this.map,id);
+      if(!layer){
+        console.warn(`not found the layer`);
+        return
+      }
+      layer.set('name',name);
+    }
 }

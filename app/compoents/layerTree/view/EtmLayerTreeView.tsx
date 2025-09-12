@@ -1,4 +1,4 @@
-import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps, Popconfirm } from 'antd';
+import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps, Popconfirm, Input } from 'antd';
 import type { LayerTreeDataNode } from '../model/EtmLayerTreeModel';
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, FolderAddOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import { useState } from 'react';
@@ -22,12 +22,14 @@ interface LayerTreeViewProps {
     onShowSelectedLayers: () => void;
     onHideSelectedLayers: () => void;
     onToggleSelectedLayers: () => void;
+    onRename: (id: string, newName: string) => void;
 }
 
 export function LayerTreeView({ ...props }: LayerTreeViewProps) {
     const [open, setOpen] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
-
+    const [editingKey, setEditingKey] = useState<React.Key | null>(null);
+    const [tempName, setTempName] = useState("");
     const showPopconfirm = () => {
         if (props.selectedKeys.length == 0) {
             //todo 需要给出提示选择图层
@@ -48,6 +50,38 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
         console.log('Clicked cancel button');
         setOpen(false);
     };
+    const tileRender =
+        (node: any) => {
+            if (editingKey === node.key) {
+                return (
+                    <Input
+                        size="small"
+                        value={tempName}
+                        autoFocus
+                        onChange={(e) => setTempName(e.target.value)}
+                        onBlur={() => {
+                            props.onRename?.(node.key, tempName);
+                            setEditingKey(null);
+                        }}
+                        onPressEnter={() => {
+                            props.onRename?.(node.key, tempName);
+                            setEditingKey(null);
+                        }}
+                    />
+                );
+            }
+            return (
+                <span
+                    onDoubleClick={() => {
+                        debugger
+                        setEditingKey(node.key);
+                        setTempName(node.title as string);
+                    }}
+                >
+                    {node.title}
+                </span>
+            );
+        }
     const menu: MenuProps = {
         items: [
             {

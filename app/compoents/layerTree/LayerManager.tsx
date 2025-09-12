@@ -142,6 +142,13 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
                 layerActions?.toggleSelectedLayers()
                 updateTree(map)
             }}
+            onRename={(id, newName) => {
+                if(!map){
+                    return
+                }
+                layerActions?.renameLayer(id, newName);
+                updateTree(map); // 刷新 treeData
+            }}
         />
     )
 }
