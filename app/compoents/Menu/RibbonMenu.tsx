@@ -1,4 +1,4 @@
-import { Dropdown, Menu, Tabs } from "antd";
+import { Dropdown, Menu, Tabs, type MenuProps } from "antd";
 import { RibbonGroup } from "./RibbonGroup";
 import { RibbonButton } from "./RibbonButton";
 import { AimOutlined, AreaChartOutlined, DeleteOutlined, EyeOutlined, FileOutlined, FileSearchOutlined, FolderAddOutlined, GlobalOutlined, LineOutlined, MinusSquareOutlined, PlusSquareOutlined, ScissorOutlined, SelectOutlined, SettingOutlined } from "@ant-design/icons";
@@ -8,18 +8,26 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
   const [activeKey, setActiveKey] = useState("home");
   const fileDropdownRef = useRef<HTMLDivElement>(null);
   // File Dropdown Menu
-  const fileMenu = (
-    <Menu
-      items={[
-        { key: "new", label: "New", onClick: () => onAction("new-file") },
-        { key: "open", label: "Open", onClick: () => onAction("open-file") },
-        { key: "save", label: "Save", onClick: () => onAction("save-file") },
-        { key: "saveAs", label: "Save As", onClick: () => onAction("save-as-file") },
-        { type: "divider" },
-        { key: "exit", label: "Exit", onClick: () => onAction("exit") },
-      ]}
-    />
-  );
+  const fileMenu: MenuProps = {
+    items: [
+      { key: "new", label: "New" },
+      { key: "open", label: "Open" },
+      { key: "save", label: "Save" },
+      { key: "saveAs", label: "Save As" },
+      { type: "divider" },
+      { key: "exit", label: "Exit" },
+    ],
+    onClick: ({ key }: { key: string }) => {
+      debugger
+      switch (key) {
+        case "new": onAction("new-file"); break;
+        case "open": onAction("open-file"); break;
+        case "save": onAction("save-file"); break;
+        case "saveAs": onAction("save-as-file"); break;
+        case "exit": onAction("exit"); break;
+      }
+    },
+  };
   // Home Tab
   const homeTab = (
     <div className="flex h-24 items-end gap-2 px-2">
@@ -145,52 +153,54 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
   ];
 
   return (
-    <Tabs
-      activeKey={activeKey} // 受控
-      defaultActiveKey="home"
-      items={[
-        {
-          key: "file",
-          label: (
-            <Dropdown overlay={fileMenu} placement="bottomLeft" trigger={['click']}>
-              <span style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                <FileOutlined style={{ marginRight: 4 }} /> File
-              </span>
-            </Dropdown>
-          ),
-          children: <div></div>, // 空内容
-        },
-        { key: "home", label: "Home", children: homeTab },
-        { key: "map", label: "Map", children: mapTab },
-        { key: "analysis", label: "Analysis", children: analysisTab },
-      ]}
-      tabBarStyle={{
-        margin: 0,
-        background: "#f0f0f0",
-        borderBottom: "1px solid #d9d9d9",
-        height: 36,
-        lineHeight: "36px",
-        padding: "0 12px",
-      }}
-      onTabClick={(key) => {
-        if (key === "file") {
-          debugger
-          // 阻止切换，同时打开下拉菜单
-          const dom = document.getElementById("file-dropdown-trigger");
-          dom?.click();
-        } else {
-          setActiveKey(key); // 只有非 File Tab 才切换
-        }
-      }}
-    >
+    <div>
+      <Tabs
+        activeKey={activeKey} // 受控
+        defaultActiveKey="home"
+        items={[
+          {
+            key: "file",
+            label: (
+              <Dropdown menu={fileMenu} placement="bottomLeft" trigger={['click']}>
+                <span style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+                  <FileOutlined style={{ marginRight: 4 }} /> File
+                </span>
+              </Dropdown>
+            ),
+            children: <div></div>, // 空内容
+          },
+          { key: "home", label: "Home", children: homeTab },
+          { key: "map", label: "Map", children: mapTab },
+          { key: "analysis", label: "Analysis", children: analysisTab },
+        ]}
+        tabBarStyle={{
+          margin: 0,
+          background: "#f0f0f0",
+          borderBottom: "1px solid #d9d9d9",
+          height: 36,
+          lineHeight: "36px",
+          padding: "0 12px",
+        }}
+        onTabClick={(key) => {
+          if (key === "file") {
+            // 阻止切换，同时打开下拉菜单
+            const dom = document.getElementById("file-dropdown-trigger");
+            dom?.click();
+          } else {
+            setActiveKey(key); // 只有非 File Tab 才切换
+          }
+        }}
+      >
+      </Tabs>
       {/* 隐藏的 Dropdown，用于触发 File 菜单 */}
       <Dropdown
-        overlay={fileMenu}
+        menu={fileMenu}
         trigger={['click']}
         getPopupContainer={() => document.body}
       >
         <span id="file-dropdown-trigger" style={{ display: "none" }}></span>
       </Dropdown>
-    </Tabs>
+    </div>
+
   );
 };

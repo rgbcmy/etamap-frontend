@@ -37,7 +37,7 @@ export function Menu({ onAction }: RibbonMenuProps) {
       {/* 顶部 Header */}
       <div className="flex justify-between items-center px-3 h-12 bg-gray-100 ">
         <div className="flex items-center gap-4">
-          <span className="font-semibold text-sm">Project</span>
+          {/* <span className="font-semibold text-sm">Project</span> */}
           {/* 快捷操作按钮 */}
           <Tooltip title="Save">
             <Button type="text" icon={<SaveOutlined />} onClick={() => onAction("save")} />

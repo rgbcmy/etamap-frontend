@@ -12,6 +12,7 @@ import { quadKey } from "ol/source/BingMaps";
 import type { Projection } from "ol/proj";
 
 interface MapComponentProps {
+  config?:any,
   onMapReady?: (map: Map) => void;
 }
 
