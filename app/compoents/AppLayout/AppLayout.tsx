@@ -4,26 +4,27 @@ import StatusBar from "../StatusBar/StatusBar";
 import styles from "./AppLayout.module.css";
 import LayerManager from "../layerTree/LayerManager";
 import { Menu } from "../Menu/Menu";
+import type { IMap } from "node_modules/openlayers-serializer/dist/dto/map";
+import { MapFileActions } from "../MapComponent/actions/MapFileActions";
+import SaveAsModal from "../common/SaveAsModal";
 
 export default function AppLayout() {
+    const [saveAsVisible, setSaveAsVisible] = useState(false);
     const [map, setMap] = useState<any>(null);
-    const [mapConfig, setMapConfig] = useState<any>(null); // 新增，用于传给 MapComponent
-    const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>();
-    const [scale, setScale] = useState<number>();
-    const [rotation, setRotation] = useState<number>(0);
     const [leftWidth, setLeftWidth] = useState(300);
     const isResizing = useRef(false);
-
+    const mapActions = useRef(new MapFileActions());
     const handleMenuAction = async (type: string) => {
+        debugger
         switch (type) {
-            case "new-file":
+            case "newFile":
                 // 创建一个新地图配置
-                setMapConfig({
-                    layers: [],
-                    view: { center: [0, 0], zoom: 2 }
-                });
+                // setMapConfig({
+                //     layers: [],
+                //     view: { center: [0, 0], zoom: 2 }
+                // });
                 break;
-            case "open-file":
+            case "openFile":
                 // 这里可以用 <input type="file" /> 或者 FilePicker
                 const input = document.createElement("input");
                 input.type = "file";
@@ -33,8 +34,9 @@ export default function AppLayout() {
                     if (file) {
                         const text = await file.text();
                         try {
-                            const json = JSON.parse(text);
-                            setMapConfig(json);
+                            const json: IMap = JSON.parse(text);
+                            let map = mapActions.current.openFile(json);
+                            setMap(map);
                         } catch (err) {
                             alert("文件格式错误！");
                         }
@@ -42,18 +44,11 @@ export default function AppLayout() {
                 };
                 input.click();
                 break;
-            case "save-file":
-                if (mapConfig) {
-                    const blob = new Blob([JSON.stringify(mapConfig, null, 2)], {
-                        type: "application/json",
-                    });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "project.etm";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                }
+            case "saveFile":
+                //setSaveAsVisible(true);
+                break;
+            case "saveAsFile":
+                setSaveAsVisible(true);
                 break;
         }
     };
@@ -93,13 +88,30 @@ export default function AppLayout() {
                     <div className={styles.resizer} onMouseDown={onMouseDown}></div>
                 </div>
                 <MapComponent
-                    config={mapConfig}   // 把配置传给 MapComponent
-                    onMapReady={setMap}
+                    map={map}
                 />
             </div>
             <StatusBar
                 map={map}
 
+            />
+            <SaveAsModal
+                visible={saveAsVisible}
+                onCancel={() => setSaveAsVisible(false)}
+                onConfirm={(filename) => {
+                    setSaveAsVisible(false);
+                    const json = mapActions.current.saveFile();
+                    debugger
+                    if (json) {
+                        const blob = new Blob([json], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = filename;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }
+                }}
             />
         </div>
     );

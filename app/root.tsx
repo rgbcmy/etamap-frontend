@@ -9,7 +9,10 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n";
+import { ConfigProvider } from "antd";
+import zhCN from "antd/es/locale/zh_CN";
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -25,7 +28,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+     <html lang="zh">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,7 +36,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
+        <ConfigProvider locale={zhCN}>
         {children}
+        </ConfigProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -46,6 +51,11 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  //todo i18n
+  //   const { t } = useTranslation();
+
+  // let message = t("error.title");
+  // let details = t("error.default");
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;

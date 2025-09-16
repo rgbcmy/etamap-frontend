@@ -62,7 +62,8 @@ export function Menu({ onAction }: RibbonMenuProps) {
         </div>
       </div>
       <RibbonMenu onAction={function (type: string): void {
-        throw new Error("Function not implemented.");
+        onAction(type);
+        //throw new Error("Function not implemented.");
       }}></RibbonMenu>
 
     </div>

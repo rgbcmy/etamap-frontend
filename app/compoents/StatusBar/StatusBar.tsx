@@ -25,11 +25,10 @@ export default function StatusBar({ map }: StatusBarProps) {
             setCoordinates({ x: center[0], y: center[1] });
             // let mapScale=getScale(map);
             let scaleLine: ScaleLine = map.getControls().getArray().find(c => c instanceof ScaleLine) as ScaleLine;
-            if (scaleLine.getScaleForResolution) {
+            if (scaleLine && scaleLine.getScaleForResolution) {
                 let mapScale = scaleLine?.getScaleForResolution();
                 setScale(mapScale || 1);
             }
-
             setRotation(view.getRotation() * (180 / Math.PI) || 0);
         };
 

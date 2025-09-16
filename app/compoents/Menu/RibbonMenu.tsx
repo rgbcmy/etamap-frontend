@@ -20,10 +20,10 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
     onClick: ({ key }: { key: string }) => {
       debugger
       switch (key) {
-        case "new": onAction("new-file"); break;
-        case "open": onAction("open-file"); break;
-        case "save": onAction("save-file"); break;
-        case "saveAs": onAction("save-as-file"); break;
+        case "new": onAction("newFile"); break;
+        case "open": onAction("openFile"); break;
+        case "save": onAction("saveFile"); break;
+        case "saveAs": onAction("saveAsFile"); break;
         case "exit": onAction("exit"); break;
       }
     },

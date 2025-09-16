@@ -14,11 +14,13 @@
     "@react-router/serve": "^7.7.1",
     "antd": "^5.27.1",
     "clsx": "^2.1.1",
+    "i18next": "^25.5.2",
     "isbot": "^5.1.27",
     "ol": "9.2.4",
     "openlayers-serializer": "^0.1.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-i18next": "^15.7.3",
     "react-router": "^7.7.1"
   },
   "devDependencies": {

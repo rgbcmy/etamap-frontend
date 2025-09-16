@@ -1,5 +1,4 @@
 // // import type { Route } from "./+types/map";
- import { Welcome } from "../welcome/welcome";
  import AppLayout from "../compoents/AppLayout/AppLayout";
 
 // export function meta({}: Route.MetaArgs) {
