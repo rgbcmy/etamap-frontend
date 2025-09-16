@@ -12,7 +12,7 @@ import "./app.css";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
 import { ConfigProvider } from "antd";
-import zhCN from "antd/es/locale/zh_CN";
+import zhCN from "antd/lib/locale/zh_CN";
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
