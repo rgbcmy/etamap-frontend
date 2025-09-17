@@ -14,14 +14,19 @@ import {
   ExportOutlined,
   UndoOutlined,
   RedoOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { RibbonMenu } from "./RibbonMenu";
+import { useTranslation } from "react-i18next";
+import i18n from "~/i18n";
 
 type RibbonMenuProps = {
   onAction: (type: string) => void;
+  projectTitle: string;
 };
 
-export function Menu({ onAction }: RibbonMenuProps) {
+export function Menu({ onAction,projectTitle }: RibbonMenuProps) {
+  const { t } = useTranslation();
   const menu = {
     items: [
       { key: "expand-all", label: <span><PlusSquareOutlined /> Expand All</span> },
@@ -36,29 +41,53 @@ export function Menu({ onAction }: RibbonMenuProps) {
     <div className="ribbon-menu w-full">
       {/* 顶部 Header */}
       <div className="flex justify-between items-center px-3 h-12 bg-gray-100 ">
+        
         <div className="flex items-center gap-4">
           {/* <span className="font-semibold text-sm">Project</span> */}
           {/* 快捷操作按钮 */}
-          <Tooltip title="Save">
+          <div className="flex items-center gap-2">
+          <span className="text-base font-semibold">{projectTitle}</span>
+        </div>
+          <Tooltip title={t("menu.save")}>
             <Button type="text" icon={<SaveOutlined />} onClick={() => onAction("save")} />
           </Tooltip>
-          <Tooltip title="Export">
+          <Tooltip title={t("menu.export")}>
             <Button type="text" icon={<ExportOutlined />} onClick={() => onAction("export")} />
           </Tooltip>
-          <Tooltip title="Undo">
+          <Tooltip title={t("menu.undo")}>
             <Button type="text" icon={<UndoOutlined />} onClick={() => onAction("undo")} />
           </Tooltip>
-          <Tooltip title="Redo">
+          <Tooltip title={t("menu.redo")}>
             <Button type="text" icon={<RedoOutlined />} onClick={() => onAction("redo")} />
           </Tooltip>
         </div>
         <div className="flex gap-2">
-          <Tooltip title="Settings">
+          <Tooltip title={t("menu.settings")}>
             <Button type="text" icon={<SettingOutlined />} onClick={() => onAction("settings")} />
           </Tooltip>
-          <Tooltip title="Help">
+          <Tooltip title={t("menu.help")}>
             <Button type="text" icon={<QuestionCircleOutlined />} onClick={() => onAction("help")} />
           </Tooltip>
+          <Dropdown
+            menu={{
+              items: [
+                { key: "zh", label: "中文" },
+                { key: "en", label: "English" },
+              ],
+              onClick: ({ key }) => {
+                i18n.changeLanguage(key);
+                localStorage.setItem("lang", key);
+              },
+            }}
+            trigger={["click"]}
+          >
+            {/* <Tooltip title={t("menu.language")}> */}
+            <Button type="text" icon={<GlobalOutlined />}>
+              {i18n.language === "zh" ? "中文" : "English"}
+            </Button>
+            {/* </Tooltip> */}
+          </Dropdown>
+
         </div>
       </div>
       <RibbonMenu onAction={function (type: string): void {

@@ -1,11 +1,11 @@
 import type { IMap } from "node_modules/openlayers-serializer/dist/dto/map";
-import { Map } from "ol";
+import { Map, View } from "ol";
+import { Projection } from "ol/proj";
 import { serializeMap, deserializeMap } from "openlayers-serializer";
-
 interface NewFileOptions {
-    resetView?: boolean;       // 是否重置视图（center/zoom）
-    rebuildMap?: boolean;      // 是否重新创建 Map 实例
-    container?: HTMLElement;   // rebuildMap 时需要传入 container
+    zoom?: number;
+    projection?: string;
+    center?:number[];
 }
 
 export class MapFileActions {
@@ -13,6 +13,7 @@ export class MapFileActions {
 
     constructor(map?: Map) {
         this.map = map;
+        
     }
 
     setMap(map: Map) {
@@ -20,32 +21,20 @@ export class MapFileActions {
     }
 
     /** 新建工程文件 */
-    newFile(options?: NewFileOptions) {
-        if (!this.map && !options?.rebuildMap) return;
-
-        if (options?.rebuildMap) {
-            if (!options.container) {
-                throw new Error("Container is required to rebuild Map");
-            }
-            // 假设你有 MapComponent 的初始化逻辑，这里可以调用或返回新的 Map
-            this.map = new Map({
-                target: options.container,
-                layers: [],
-                view: {
-                    center: [0, 0],
-                    zoom: 2,
-                } as any,
-            });
-        } else {
-            // 清空图层
-            this.map!.getLayers().clear();
-            if (options?.resetView ?? true) {
-                const view = this.map!.getView();
-                view.setCenter([0, 0]);
-                view.setZoom(2);
-                view.setRotation(0);
-            }
-        }
+    newFile(name:string,viewOptions:NewFileOptions) {
+        // 假设你有 MapComponent 的初始化逻辑，这里可以调用或返回新的 Map
+        
+        let map = new Map({
+            layers: [],   
+            view: new View({
+                center: viewOptions.center??[0, 0],
+                zoom:  viewOptions.zoom??2,
+                projection:viewOptions.projection??"EPSG:3857"
+            }),
+        });
+        map.set('name',name)
+        this.map=map;
+        return this.map
     }
 
     /** 打开工程文件 */

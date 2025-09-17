@@ -15,6 +15,7 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
     const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 
     useEffect(() => {
+        debugger
         if (!map) {
             return;
         }

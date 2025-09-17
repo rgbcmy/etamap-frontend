@@ -3,19 +3,20 @@ import { RibbonGroup } from "./RibbonGroup";
 import { RibbonButton } from "./RibbonButton";
 import { AimOutlined, AreaChartOutlined, DeleteOutlined, EyeOutlined, FileOutlined, FileSearchOutlined, FolderAddOutlined, GlobalOutlined, LineOutlined, MinusSquareOutlined, PlusSquareOutlined, ScissorOutlined, SelectOutlined, SettingOutlined } from "@ant-design/icons";
 import { useRef, useState } from "react";
-
+import { useTranslation } from "react-i18next";
 export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onAction }) => {
+  const { t } = useTranslation();
   const [activeKey, setActiveKey] = useState("home");
   const fileDropdownRef = useRef<HTMLDivElement>(null);
   // File Dropdown Menu
   const fileMenu: MenuProps = {
     items: [
-      { key: "new", label: "New" },
-      { key: "open", label: "Open" },
-      { key: "save", label: "Save" },
-      { key: "saveAs", label: "Save As" },
+      { key: "new", label: t("file.new") },
+      { key: "open", label: t("file.open") },
+      { key: "save", label: t("file.save") },
+      { key: "saveAs", label: t("file.saveAs") },
       { type: "divider" },
-      { key: "exit", label: "Exit" },
+      // { key: "exit", label: t("file.exit") },
     ],
     onClick: ({ key }: { key: string }) => {
       debugger
@@ -31,45 +32,45 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
   // Home Tab
   const homeTab = (
     <div className="flex h-24 items-end gap-2 px-2">
-      <RibbonGroup title="Layer">
+      <RibbonGroup title={t("group.layer")}>
         <RibbonButton
           size="large"
           icon={<FolderAddOutlined />}
-          label="Add Data"
+          label={t("layer.addData")}
           onClick={() => onAction("add-layer")}
         />
         <RibbonButton
           size="small"
           icon={<DeleteOutlined />}
-          label="Remove"
+          label={t("layer.remove")}
           onClick={() => onAction("remove-layer")}
         />
         <RibbonButton
           size="small"
           type="toggle"
           icon={<EyeOutlined />}
-          label="Visibility"
+          label={t("layer.visibility")}
           onClick={() => onAction("toggle-visibility")}
         />
       </RibbonGroup>
 
-      <RibbonGroup title="Clipboard">
+      <RibbonGroup  title={t("group.clipboard")}>
         <RibbonButton
           size="large"
           icon={<ScissorOutlined />}
-          label="Cut"
+          label={t("clipboard.cut")}
           onClick={() => onAction("cut")}
         />
         <RibbonButton
           size="small"
           icon={<PlusSquareOutlined />}
-          label="Copy"
+          label={t("clipboard.copy")}
           onClick={() => onAction("copy")}
         />
         <RibbonButton
           size="small"
           icon={<MinusSquareOutlined />}
-          label="Paste"
+          label={t("clipboard.paste")}
           onClick={() => onAction("paste")}
         />
       </RibbonGroup>
@@ -79,38 +80,38 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
   // Map Tab
   const mapTab = (
     <div className="flex h-24 items-end gap-2 px-2">
-      <RibbonGroup title="Navigation">
+      <RibbonGroup title={t("group.navigation")}>
         <RibbonButton
           size="large"
           icon={<AimOutlined />}
-          label="Zoom To Layer"
+          label={t("navigation.zoomToLayer")}
           onClick={() => onAction("zoom-to-layer")}
         />
         <RibbonButton
           size="small"
           icon={<GlobalOutlined />}
-          label="Full Extent"
+          label={t("navigation.fullExtent")}
           onClick={() => onAction("full-extent")}
         />
         <RibbonButton
           size="small"
           icon={<SelectOutlined />}
-          label="Select"
+          label={t("navigation.select")}
           onClick={() => onAction("select")}
         />
       </RibbonGroup>
 
-      <RibbonGroup title="Basemap">
+      <RibbonGroup title={t("group.basemap")}>
         <RibbonButton
           size="large"
           type="dropdown"
           icon={<SettingOutlined />}
-          label="Basemap"
+          label={t("basemap.title")}
           menu={{
             items: [
-              { key: "osm", label: "OpenStreetMap" },
-              { key: "satellite", label: "Satellite" },
-              { key: "topo", label: "Topographic" },
+              { key: "osm", label: t("basemap.osm") },
+              { key: "satellite", label: t("basemap.satellite") },
+              { key: "topo", label: t("basemap.topo") },
             ],
             onClick: (key: any) => onAction(`basemap-${key}`),
           }}
@@ -122,23 +123,23 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
   // Analysis Tab
   const analysisTab = (
     <div className="flex h-24 items-end gap-2 px-2">
-      <RibbonGroup title="Tools">
+      <RibbonGroup title={t("group.tools")}>
         <RibbonButton
           size="large"
           icon={<FileSearchOutlined />}
-          label="Geoprocessing"
+          label={t("tools.geoprocessing")}
           onClick={() => onAction("geoprocessing")}
         />
         <RibbonButton
           size="small"
           icon={<LineOutlined />}
-          label="Buffer"
+          label={t("tools.buffer")}
           onClick={() => onAction("buffer")}
         />
         <RibbonButton
           size="small"
           icon={<AreaChartOutlined />}
-          label="Overlay"
+          label={t("tools.overlay")}
           onClick={() => onAction("overlay")}
         />
       </RibbonGroup>
@@ -147,9 +148,9 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
 
   // Tabs
   const ribbonTabs = [
-    { key: "home", label: "Home", children: homeTab },
-    { key: "map", label: "Map", children: mapTab },
-    { key: "analysis", label: "Analysis", children: analysisTab },
+    { key: "home", label: t("tab.home"), children: homeTab },
+    { key: "map", label: t("tab.map"), children: mapTab },
+    { key: "analysis", llabel: t("tab.analysis"), children: analysisTab },
   ];
 
   return (
@@ -163,15 +164,15 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
             label: (
               <Dropdown menu={fileMenu} placement="bottomLeft" trigger={['click']}>
                 <span style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-                  <FileOutlined style={{ marginRight: 4 }} /> File
+                  <FileOutlined style={{ marginRight: 4 }} /> {t("tab.file")}
                 </span>
               </Dropdown>
             ),
             children: <div></div>, // 空内容
           },
-          { key: "home", label: "Home", children: homeTab },
-          { key: "map", label: "Map", children: mapTab },
-          { key: "analysis", label: "Analysis", children: analysisTab },
+          { key: "home", label: t("tab.home"), children: homeTab },
+          { key: "map", label: t("tab.map"), children: mapTab },
+          { key: "analysis", label: t("tab.analysis"), children: analysisTab },
         ]}
         tabBarStyle={{
           margin: 0,
@@ -183,9 +184,7 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
         }}
         onTabClick={(key) => {
           if (key === "file") {
-            // 阻止切换，同时打开下拉菜单
-            const dom = document.getElementById("file-dropdown-trigger");
-            dom?.click();
+            // 第一个tab不触发tab选择
           } else {
             setActiveKey(key); // 只有非 File Tab 才切换
           }

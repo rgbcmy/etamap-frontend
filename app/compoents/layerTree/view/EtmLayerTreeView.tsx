@@ -2,7 +2,7 @@ import { Tree, Button, Tooltip, Space, Dropdown, type MenuProps, Popconfirm, Inp
 import type { LayerTreeDataNode } from '../model/EtmLayerTreeModel';
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, FolderAddOutlined, MinusSquareOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
-
+import { useTranslation } from "react-i18next";
 interface LayerTreeViewProps {
     checkStrictly?: boolean
     treeData: LayerTreeDataNode[];
@@ -26,6 +26,7 @@ interface LayerTreeViewProps {
 }
 
 export function LayerTreeView({ ...props }: LayerTreeViewProps) {
+     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [editingKey, setEditingKey] = useState<React.Key | null>(null);
@@ -187,7 +188,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeOutlined style={{ marginRight: 8 }} />
-                        Show All Layers
+                         {t("layer.showAll")}
                     </span>
                 ),
 
@@ -197,7 +198,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                        Hide All Layers
+                       {t("layer.hideAll")}
                     </span>
                 ),
             },
@@ -206,7 +207,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                        Show Selected Layers
+                       {t("layer.showSelected")}
                     </span>
                 ),
             },
@@ -215,7 +216,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                        Hide Selected Layers
+                        {t("layer.hideSelected")}
                     </span>
                 ),
             },
@@ -224,7 +225,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                        Toggle Selected Layers
+                        {t("layer.toggleSelected")}
                     </span>
                 ),
             },
@@ -252,19 +253,19 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
             <div style={{ flexShrink: 0 }}>
                 <Space>
-                    <Tooltip title="Add Group"> <Button type="text" icon={<FolderAddOutlined />} onClick={props.onAddGroup} shape="circle" size="small" />
+                    <Tooltip title={t("layer.addGroup")}> <Button type="text" icon={<FolderAddOutlined />} onClick={props.onAddGroup} shape="circle" size="small" />
                     </Tooltip>
-                    <Tooltip title="Mange Map Themes">
+                    <Tooltip title={t("layer.manageThemes")}>
                         <Dropdown menu={menu} trigger={['click']}>
                             <Button type="text" icon={<EyeOutlined />} shape="circle" size="small" />
                         </Dropdown>
 
                     </Tooltip>
-                    <Tooltip title="Expand All"> <Button type="text" icon={<PlusSquareOutlined onClick={props.onExpandAll} />} shape="circle" size="small" />
+                    <Tooltip title={t("layer.expandAll")}> <Button type="text" icon={<PlusSquareOutlined onClick={props.onExpandAll} />} shape="circle" size="small" />
                     </Tooltip>
-                    <Tooltip title="Collapse All"> <Button type="text" icon={<MinusSquareOutlined onClick={props.onCollapseAll} />} shape="circle" size="small" />
+                    <Tooltip title={t("layer.collapseAll")}> <Button type="text" icon={<MinusSquareOutlined onClick={props.onCollapseAll} />} shape="circle" size="small" />
                     </Tooltip>
-                    <Tooltip title="Remove Layer/Group">
+                    <Tooltip title={t("layer.removeGroup")}>
                         <Popconfirm
                             title="Title"
                             description="sure you want to delete the layers?"

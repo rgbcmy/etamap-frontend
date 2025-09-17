@@ -22,6 +22,7 @@ export class EtmLayerTreeActions {
     }
     // ====== 添加组 ======
     addGroup(name?: string) {
+        debugger
         const selectedIds = this.getSelectedLayerIds();
 
         // 情况 1：选中多个图层或单个图层(并且不是图层组) → groupSelected
