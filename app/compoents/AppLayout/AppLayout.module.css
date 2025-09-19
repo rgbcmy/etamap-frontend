@@ -57,3 +57,21 @@
     /* 可见的拖拽区域 */
     z-index: 10;
 }
+
+.leftPanel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+.dataSourceSection {
+    flex: 0 0 40%;
+    overflow: auto;
+    border-bottom: 1px solid #ddd;
+}
+
+.layerSection {
+    flex: 1;
+    overflow: auto;
+}

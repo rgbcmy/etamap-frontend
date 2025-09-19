@@ -88,7 +88,39 @@ const zh = {
     zoom: "缩放等级",
     confirm: "创建",
     cancel: "取消"
+  },
+  dataSource: {
+    managerTitle: "数据源管理器",
+    listTitle: "数据源列表",
+    add: "添加数据源",
+    edit: "编辑数据源",
+    name: "名称",
+    type: "类型",
+    url: "服务地址或文件路径",
+    actions: "操作",
+    saved: "数据源已保存",
+    groupTitle: {
+      xyz: "XYZ 瓦片服务"
+    },
+    node: {
+      empty: "暂无数据源"
+    },
+    menu: {
+      addToMap: "加载到地图",
+      edit: "编辑",
+      delete: "删除",
+      addNew: "添加数据源",
+      refresh: "刷新分组"
+    },
+    error: {
+      loadFailed: "数据源加载失败，请检查网络或服务地址。",
+      unsupportedType: "暂不支持该类型：{{type}}"
+    },
+    message: {
+      addedToMap: "已将 {{name}} 加载到地图"
+    }
   }
+
 };
 
 export default zh;

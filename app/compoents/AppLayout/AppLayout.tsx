@@ -9,9 +9,21 @@ import SaveAsModal from "../common/SaveAsModal";
 import { useTranslation } from "react-i18next";
 import type { IMap } from "node_modules/openlayers-serializer/dist/dto/map";
 import NewMapModal from "../common/NewMapModal";
+import DataSourceManager from "./source/DataSourceTree";
+import DataSourceManagerModal from "./source/DataSourceManagerModal";
+import DataSourceTree from "./source/DataSourceTree";
 
 export default function AppLayout() {
     const { t } = useTranslation();
+    const [sourceManagerVisible, setSourceManagerVisible] = useState(false);
+    const [dataSources, setDataSources] = useState<any[]>([
+        {
+            id: "1",
+            name: "OpenStreetMap",
+            type: "XYZ",
+            url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        }
+    ]);
     const [saveAsVisible, setSaveAsVisible] = useState(false);
     const [newMapVisible, setNewMapVisible] = useState(false);
     const [projectTitle, setProjectTitle] = useState('');
@@ -23,7 +35,7 @@ export default function AppLayout() {
         debugger
         switch (type) {
             case "newFile":
-                  //显示新增弹窗
+                //显示新增弹窗
                 setNewMapVisible(true);
                 break;
             case "openFile":
@@ -97,6 +109,33 @@ export default function AppLayout() {
             window.removeEventListener("mouseup", onMouseUp);
         };
     }, []);
+
+    const handleAddToMap = (source: any) => {
+        // 加载到地图（OpenLayers 示例）
+        // const layer = new ol.layer.Tile({
+        //     source: new ol.source.XYZ({ url: source.url })
+        // });
+        // map.addLayer(layer);
+    };
+
+    const handleEdit = (source: any) => {
+        // 打开编辑弹窗（你可以用 Modal + Form）
+        console.log("编辑数据源：", source);
+    };
+
+    const handleDelete = (id: string) => {
+        // setDataSources(prev => prev.filter(s => s.id !== id));
+    };
+
+    const handleAddNew = (groupKey: string) => {
+        // 打开添加弹窗，默认类型为 groupKey 对应的类型
+        console.log("添加新数据源到分组：", groupKey);
+    };
+
+    const handleRefreshGroup = (groupKey: string) => {
+        // 重新加载该分组的数据源（如果你有远程数据）
+        console.log("刷新分组：", groupKey);
+    }
     return (
         <div className={styles.appLayout}>
             <header className={styles.ribbon}>
@@ -104,8 +143,19 @@ export default function AppLayout() {
             </header>
             <div className={styles.main}>
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
-
-                    <LayerManager map={map}></LayerManager>
+                    <div className={styles.dataSourceSection}>
+                        <DataSourceTree
+                            sources={dataSources}
+                            onAddToMap={handleAddToMap}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onAddNew={handleAddNew}
+                            onRefreshGroup={handleRefreshGroup}
+                        />
+                    </div>
+                    <div className={styles.layerSection}>
+                        <LayerManager map={map} />
+                    </div>
                     <div className={styles.resizer} onMouseDown={onMouseDown}></div>
                 </div>
                 <MapComponent
@@ -148,6 +198,12 @@ export default function AppLayout() {
                     debugger
                     setMap(map);
                 }}
+            />
+            {/* <Button onClick={() => setManagerVisible(true)}>管理数据源</Button> */}
+
+            <DataSourceManagerModal
+                visible={sourceManagerVisible}
+                onClose={() => setSourceManagerVisible(false)}
             />
         </div>
     );
