@@ -79,7 +79,7 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
 
     }
     const handleExpend = (keys: React.Key[]) => {
-        
+
         setExpandedKeys(keys)
     }
     const handleSelect = (
@@ -139,6 +139,11 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
 
 
     }
+    // 清空选中
+    const clearSelect = () => {
+        setSelectedKeys([]);
+        layerActions?.setSelectedLayerIds([]);
+    };
     return (
         <LayerTreeView
             checkStrictly={!linkParentChild}
@@ -191,13 +196,14 @@ export default function LayerManager({ map, linkParentChild = false }: LayerMana
                 updateTree(map)
             }}
             onRename={(id, newName) => {
-                
+
                 if (!map) {
                     return
                 }
                 layerActions?.renameLayer(id, newName);
                 updateTree(map); // 刷新 treeData
             }}
+            clearSelect={clearSelect}  
         />
     )
 }

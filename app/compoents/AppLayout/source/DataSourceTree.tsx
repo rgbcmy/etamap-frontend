@@ -2,6 +2,7 @@ import React from "react";
 import { Tree, Dropdown, Menu } from "antd";
 import { FolderOpenOutlined, FileOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
+import i18n from "~/i18n";
 
 type DataSource = {
   id: string;
@@ -32,39 +33,70 @@ export default function DataSourceTree({
   const xyzSources = sources.filter(s => s.type === "XYZ");
 
   const renderLeafTitle = (item: DataSource) => {
-    const menu = (
-      <Menu>
-        <Menu.Item key="add" onClick={() => onAddToMap?.(item)}>
-          {t("dataSource.menu.addToMap")}
-        </Menu.Item>
-        <Menu.Item key="edit" onClick={() => onEdit?.(item)}>
-          {t("dataSource.menu.edit")}
-        </Menu.Item>
-        <Menu.Item key="delete" danger onClick={() => onDelete?.(item.id)}>
-          {t("dataSource.menu.delete")}
-        </Menu.Item>
-      </Menu>
-    );
+    const menu = {
+      items: [
+        { key: "add", label: t("dataSource.menu.addToMap") },
+        { key: "edit", label: t("dataSource.menu.edit") },
+        { key: "delete", label: t("dataSource.menu.delete") },
+      ],
+      onClick: ({ key }: { key: string }) => {
+        switch (key) {
+          case "add":
+            onAddToMap?.(item)
+            break;
+          case "edit":
+            onEdit?.(item)
+            break;
+          case "delete":
+            onDelete?.(item.id)
+            break;
+          default:
+            break;
+        }
+      },
+    }
+
+    // (
+    //   <Menu>
+    //     <Menu.Item key="add" onClick={() => onAddToMap?.(item)}>
+    //       {t("dataSource.menu.addToMap")}
+    //     </Menu.Item>
+    //     <Menu.Item key="edit" onClick={() => onEdit?.(item)}>
+    //       {t("dataSource.menu.edit")}
+    //     </Menu.Item>
+    //     <Menu.Item key="delete" danger onClick={() => onDelete?.(item.id)}>
+    //       {t("dataSource.menu.delete")}
+    //     </Menu.Item>
+    //   </Menu>
+    // );
     return (
-      <Dropdown overlay={menu} trigger={["contextMenu"]}>
+      <Dropdown menu={menu} trigger={["contextMenu"]}>
         <span>{item.name}</span>
       </Dropdown>
     );
   };
 
   const renderGroupTitle = (groupKey: string) => {
-    const menu = (
-      <Menu>
-        <Menu.Item key="addNew" onClick={() => onAddNew?.(groupKey)}>
-          {t("dataSource.menu.addNew")}
-        </Menu.Item>
-        <Menu.Item key="refresh" onClick={() => onRefreshGroup?.(groupKey)}>
-          {t("dataSource.menu.refresh")}
-        </Menu.Item>
-      </Menu>
-    );
+    const menu ={
+      items: [
+        { key: "addNew", label: t("dataSource.menu.addToMap") },
+        { key: "refresh", label: t("dataSource.menu.edit") },
+      ],
+      onClick: ({ key }: { key: string }) => {
+        switch (key) {
+          case "add":
+            onAddNew?.(groupKey)
+            break;
+          case "edit":
+            onRefreshGroup?.(groupKey)
+            break;
+          default:
+            break;
+        }
+      },
+    }
     return (
-      <Dropdown overlay={menu} trigger={["contextMenu"]}>
+      <Dropdown menu={menu} trigger={["contextMenu"]}>
         <span>{t(`dataSource.groupTitle.${groupKey}`)}</span>
       </Dropdown>
     );
@@ -77,31 +109,31 @@ export default function DataSourceTree({
       icon: <FolderOpenOutlined />,
       children: xyzSources.length > 0
         ? xyzSources.map(item => ({
-            title: renderLeafTitle(item),
-            key: item.id,
+          title: renderLeafTitle(item),
+          key: item.id,
+          icon: <FileOutlined />,
+          isLeaf: true
+        }))
+        : [
+          {
+            title: t("dataSource.node.empty"),
+            key: "xyz-empty",
+            disabled: true,
             icon: <FileOutlined />,
             isLeaf: true
-          }))
-        : [
-            {
-              title: t("dataSource.node.empty"),
-              key: "xyz-empty",
-              disabled: true,
-              icon: <FileOutlined />,
-              isLeaf: true
-            }
-          ]
+          }
+        ]
     }
   ];
 
   return (
-      <Tree
-        rootStyle={{ height: "100%", overflow: "auto" }}
-        showIcon
-        defaultExpandAll
-        treeData={treeData}
-        selectable={false}
-        style={{ height: "100%", padding: 8 }}
-      />
+    <Tree
+      rootStyle={{ height: "100%", overflow: "auto" }}
+      showIcon
+      defaultExpandAll
+      treeData={treeData}
+      selectable={false}
+      style={{ height: "100%", padding: 8 }}
+    />
   );
 }

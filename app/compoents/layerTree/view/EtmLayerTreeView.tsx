@@ -23,10 +23,11 @@ interface LayerTreeViewProps {
     onHideSelectedLayers: () => void;
     onToggleSelectedLayers: () => void;
     onRename: (id: string, newName: string) => void;
+    clearSelect?: () => void;
 }
 
 export function LayerTreeView({ ...props }: LayerTreeViewProps) {
-     const { t } = useTranslation();
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [editingKey, setEditingKey] = useState<React.Key | null>(null);
@@ -113,7 +114,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
             return (
                 <span
                     onDoubleClick={() => {
-                        
+
                         setEditingKey(node.key);
                         setTempName(node.title as string);
                     }}
@@ -124,10 +125,10 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
         }
     // 右键菜单触发
     const handleRightClick = ({ event, node }: any) => {
-        
+
         event.preventDefault();
         // 先选中右键点击的节点
-        props.onSelect([node.key], { selected: true, node,nativeEvent: event });
+        props.onSelect([node.key], { selected: true, node, nativeEvent: event });
 
         const isGroup = node?.isGroup; // 你在 treeData 里定义的标记
         const items: MenuProps['items'] = [];
@@ -177,6 +178,12 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
             case 'toggleVisibility':
                 props.onToggleSelectedLayers();
                 break;
+            case 'expandAll':
+                props.onExpandAll();
+                break;
+            case 'collapseAll':
+                props.onCollapseAll();
+                break;
         }
 
         setContextMenu(null);
@@ -188,7 +195,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeOutlined style={{ marginRight: 8 }} />
-                         {t("layer.showAll")}
+                        {t("layer.showAll")}
                     </span>
                 ),
 
@@ -198,7 +205,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                       {t("layer.hideAll")}
+                        {t("layer.hideAll")}
                     </span>
                 ),
             },
@@ -207,7 +214,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 label: (
                     <span>
                         <EyeInvisibleOutlined style={{ marginRight: 8 }} />
-                       {t("layer.showSelected")}
+                        {t("layer.showSelected")}
                     </span>
                 ),
             },
@@ -231,7 +238,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
             },
         ],
         onClick: ({ key }) => {
-            
+
             if (key === 'ShowAllLayers') {
                 props.onShowAllLayers();
                 // expandAll();
@@ -250,7 +257,35 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
         },
     };
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
+            onContextMenu={(event) => {
+                // 如果右键点在节点上，不处理空白菜单
+                debugger
+                const target = event.target as HTMLElement;
+                if (target.closest('.ant-tree-treenode')) return; // 点到节点不处理
+                event.preventDefault();
+
+                setContextMenu({
+                    x: event.clientX,
+                    y: event.clientY,
+                    items: [
+                        { key: 'addGroup', label: 'Add Group' },
+                        { key: 'expandAll', label: 'Expand All' },
+                        { key: 'collapseAll', label: 'Collapse All' },
+                    ],
+                    node: undefined, // 空白区域没有节点
+                });
+            }}
+            onClick={(event) => {
+                debugger
+                const target = event.target as HTMLElement;
+                // 点到 Tree 节点或工具栏不清空
+                if (target.closest('.ant-tree-treenode') || target.closest('.ant-space')) return;
+               
+                // 清空选中
+                props.clearSelect?.();
+            }}
+        >
             <div style={{ flexShrink: 0 }}>
                 <Space>
                     <Tooltip title={t("layer.addGroup")}> <Button type="text" icon={<FolderAddOutlined />} onClick={props.onAddGroup} shape="circle" size="small" />
