@@ -2,16 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import MapComponent from "../MapComponent/MapComponent";
 import StatusBar from "../StatusBar/StatusBar";
 import styles from "./AppLayout.module.css";
-import LayerManager from "../layerTree/LayerManager";
+import LayerPanel from "../layerTree/LayerPanel";
 import { Menu } from "../Menu/Menu";
 import { MapFileActions } from "../MapComponent/actions/MapFileActions";
 import SaveAsModal from "../common/SaveAsModal";
 import { useTranslation } from "react-i18next";
 import type { IMap } from "node_modules/openlayers-serializer/dist/dto/map";
 import NewMapModal from "../common/NewMapModal";
-import DataSourceManager from "./source/DataSourceTree";
-import DataSourceManagerModal from "./source/DataSourceManagerModal";
-import DataSourceTree from "./source/DataSourceTree";
+import DataSourceManagerModal from "../source/DataSourceManagerModal";
+import DataSourceTree from "../source/DataSourcePanel";
+import DataSourcePanel from "../source/DataSourcePanel";
 
 export default function AppLayout() {
     const { t } = useTranslation();
@@ -144,17 +144,10 @@ export default function AppLayout() {
             <div className={styles.main}>
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
                     <div className={styles.dataSourceSection}>
-                        <DataSourceTree
-                            sources={dataSources}
-                            onAddToMap={handleAddToMap}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            onAddNew={handleAddNew}
-                            onRefreshGroup={handleRefreshGroup}
-                        />
+                        <DataSourcePanel map={map}></DataSourcePanel>
                     </div>
                     <div className={styles.layerSection}>
-                        <LayerManager map={map} />
+                        <LayerPanel map={map} />
                     </div>
                     <div className={styles.resizer} onMouseDown={onMouseDown}></div>
                 </div>

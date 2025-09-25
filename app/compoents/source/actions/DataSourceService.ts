@@ -1,15 +1,16 @@
 import { message } from "antd";
 import type { i18n } from "i18next"; // 用于国际化提示
-import type { ISerializedSource,ISource, IXYZ} from "node_modules/openlayers-serializer/dist/dto/source";
+import type { ISerializedSource, ISource, IXYZ } from "node_modules/openlayers-serializer/dist/dto/source";
 import type { Map as OLMap } from "ol";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
+import { useTranslation } from "react-i18next"
 
-export class DataSourceActions {
+export class DataSourceService {
   private sources: ISource[] = [];
   private cache: Map<string, ISource> = new Map();
-
-  constructor(private map: OLMap, private i18n: i18n) {}
+  private i18n = useTranslation();
+  constructor(private map: OLMap) { }
 
   getSources(): ISource[] {
     return [...this.sources];
@@ -49,9 +50,9 @@ export class DataSourceActions {
   addToMap(source: ISource): void {
     switch (source.type) {
       case "XYZ":
-        let xyzSource=source as IXYZ
+        let xyzSource = source as IXYZ
         const layer = new TileLayer({
-          source: new XYZ({ url: xyzSource.url??undefined  })
+          source: new XYZ({ url: xyzSource.url ?? undefined })
         });
         this.map.addLayer(layer);
         message.success(this.i18n.t("dataSource.message.addedToMap", { name: source.name }));

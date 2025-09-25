@@ -2,12 +2,12 @@ import Map from 'ol/Map'
 import { useEffect, useMemo, useState } from "react";
 import { flattenTreeKeys, getVisibleKeys, layersToTree, type LayerTreeDataNode } from "./model/EtmLayerTreeModel";
 import { serializeMapLayers } from "openlayers-serializer";
-import { EtmLayerTreeActions, type MoveLayerParams } from './actions/EtmLayerTreeActions';
+import { EtmLayerTreeActions, type MoveLayerParams } from './actions/EtmLayerTreeService';
 import { LayerTreeView } from './view/EtmLayerTreeView';
 import type { TreeDataNode, TreeProps } from 'antd';
 import type { EventDataNode } from 'antd/es/tree';
-interface LayerManagerProps { map?: Map; /**是否联动子图层 */ linkParentChild?: boolean; }
-export default function LayerManager({ map, linkParentChild = false }: LayerManagerProps) {
+interface LayerPanelProps { map?: Map; /**是否联动子图层 */ linkParentChild?: boolean; }
+export default function LayerPanel({ map, linkParentChild = false }: LayerPanelProps) {
     const [layerActions, setLayerActions] = useState<EtmLayerTreeActions | null>(null);
     const [treeData, setTreeData] = useState<LayerTreeDataNode[]>([]);
     const [checkedKeys, setCheckedKeys] = useState<React.Key[]>([]);
