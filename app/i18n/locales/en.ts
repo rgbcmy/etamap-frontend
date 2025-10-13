@@ -76,16 +76,21 @@ const en = {
     saveAs: "Save As"
   },
   newMap: {
-  title: "New Map",
-  defaultName: "Untitled Map",
-  name: "Map Name",
-  nameRequired: "Please enter a map name",
-  projection: "Projection",
-  centerX: "Center X",
-  centerY: "Center Y",
-  zoom: "Zoom Level",
-  confirm: "Create",
-  cancel: "Cancel"
+    title: "New Map",
+    defaultName: "Untitled Map",
+    name: "Map Name",
+    nameRequired: "Please enter a map name",
+    projection: "Projection",
+    centerX: "Center X",
+    centerY: "Center Y",
+    zoom: "Zoom Level",
+    confirm: "Create",
+    cancel: "Cancel"
+  },
+  dataSource: {
+  error: {
+    mapNotReady: "mapNotReady"
+  }
 }
 };
 

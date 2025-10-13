@@ -33,8 +33,8 @@ importers:
         specifier: 9.2.4
         version: 9.2.4
       openlayers-serializer:
-        specifier: ^0.1.13
-        version: 0.1.13(ol@9.2.4)
+        specifier: ^0.1.14
+        version: 0.1.14(ol@9.2.4)
       react:
         specifier: ^19.1.1
         version: 19.1.1
@@ -1403,8 +1403,8 @@ packages:
     resolution: {integrity: sha512-737ZY3yNnXy37FHkQxPzt4UZ2UWPWiCZWLvFZ4fu5cueciegX0zGPnrlY6bwRg4FdQOe9YU8MkmJwGhoMybl8A==}
     engines: {node: '>= 0.8'}
 
-  openlayers-serializer@0.1.13:
-    resolution: {integrity: sha512-WK5aVdQsExrQyur5XbT2UBrbYqQTDAwet0R4XkyzP/dm1TIyp7z9F2puCTNZxx/74K6vn5HDa5HNKOr2djBq0w==}
+  openlayers-serializer@0.1.14:
+    resolution: {integrity: sha512-cVXsZj0HQk39u116Fa9on005cgUhmZDp+tBy8CllECP2lEBlJyivpfwReulY0F99fNU4s2hDlA+t8HuIiO3kdA==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       ol: 9.2.4
@@ -3460,7 +3460,7 @@ snapshots:
 
   on-headers@1.1.0: {}
 
-  openlayers-serializer@0.1.13(ol@9.2.4):
+  openlayers-serializer@0.1.14(ol@9.2.4):
     dependencies:
       ol: 9.2.4
 

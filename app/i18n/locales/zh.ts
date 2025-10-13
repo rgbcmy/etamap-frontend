@@ -100,7 +100,7 @@ const zh = {
     actions: "操作",
     saved: "数据源已保存",
     groupTitle: {
-      xyz: "XYZ 瓦片服务"
+      XYZ: "XYZ 瓦片服务"
     },
     node: {
       empty: "暂无数据源"
@@ -114,7 +114,8 @@ const zh = {
     },
     error: {
       loadFailed: "数据源加载失败，请检查网络或服务地址。",
-      unsupportedType: "暂不支持该类型：{{type}}"
+      unsupportedType: "暂不支持该类型：{{type}}",
+      mapNotReady: "请先创建或打开一个工程，再添加图层"
     },
     message: {
       addedToMap: "已将 {{name}} 加载到地图"

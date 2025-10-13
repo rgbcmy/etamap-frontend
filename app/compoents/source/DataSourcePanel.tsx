@@ -2,23 +2,40 @@ import React, { useEffect } from "react";
 import EtmSourceTreeView from "./view/EtmSourceTreeView";
 import { DataSourceService } from "./actions/DataSourceService";
 import type { Map as OLMap } from "ol";
+import type { ISource } from "node_modules/openlayers-serializer/dist/dto/source";
+import { useTranslation } from "react-i18next";
+import { message } from "antd";
+import "antd/dist/reset.css";
 
 interface DataSourcePanelProps {
   map: OLMap;
 }
 
 export default function DataSourcePanel({ map }: DataSourcePanelProps) {
-  const service = new DataSourceService(map);
-  const [sources, setSources] = React.useState(service.getSources());
+  //const service = new DataSourceService(map);
+  const { t } = useTranslation();
+  const service = React.useMemo(() => new DataSourceService(t), [t]);
+  const [sources, setSources] = React.useState<ISource[]>([]);
 
-  const getGroupedSources = () => ({
-    xyz: sources.filter(s => s.type === "XYZ"),
-  });
+  //初始化 sources
+  useEffect(() => {
+    setSources([...service.getSources()]);
+  }, [service]);
 
-  const refreshSources = () => setSources(service.getSources());
+  const getGroupedSources = () => {
+    return {
+      XYZ: sources.filter(s => s.type === "XYZ"),
+    }
+  };
 
-  const addSource = (source: any) => {
-    service.addSource(source);
+  const refreshSources = () => {
+    debugger
+    setSources([...service.getSources()]);
+  }
+
+  const addSource = (groupKey: string, source: ISource) => {
+    debugger
+    service.addSource(groupKey, source);
     refreshSources();
   };
 
@@ -27,13 +44,22 @@ export default function DataSourcePanel({ map }: DataSourcePanelProps) {
     refreshSources();
   };
 
-  const editSource = (source: any) => {
+  const editSource = (groupKey: string, source: any) => {
+    debugger
     service.editSource(source);
     refreshSources();
   };
 
   const addToMap = (source: any) => {
-    service.addToMap(source);
+    debugger
+    if (!map) {
+      message.warning("123")
+      // message.warning(
+      //   t("dataSource.error.mapNotReady") || "请先创建或打开一个工程，再添加图层"
+      // );
+      return;
+    }
+    service.addToMap(source, map);
   };
 
   return (
@@ -42,14 +68,7 @@ export default function DataSourcePanel({ map }: DataSourcePanelProps) {
       onAddToMap={addToMap}
       onEdit={editSource}
       onDelete={deleteSource}
-      onAddNew={() =>
-        addSource({
-          id: String(Date.now()),
-          name: "New XYZ",
-          type: "XYZ",
-          url: "https://example.com",
-        })
-      }
+      onAddNew={addSource}
       onRefreshGroup={() => refreshSources()}
     />
   );
