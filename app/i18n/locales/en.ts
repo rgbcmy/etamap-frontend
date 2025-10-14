@@ -88,10 +88,52 @@ const en = {
     cancel: "Cancel"
   },
   dataSource: {
-  error: {
-    mapNotReady: "mapNotReady"
+    managerTitle: "data source manager",
+    listTitle: "Data Sources",
+    add: "Add Data Source",
+    edit: "Edit Data Source",
+    name: "Name",
+    type: "Type",
+    url: "URL",
+    actions: "Actions",
+    saved: "Saved",
+    groupTitle: {
+      XYZ: "XYZ",
+      TileWMS: "TileWMS",
+      Zoomify:"Zoomify",
+      WMTS: "WMTS",
+      TileJSON: "TileJSON",
+      TileArcGISRest: "TileArcGISRest",
+      OGCMapTile:"OGCMapTile",
+      VectorTile:"VectorTile",
+      OGCVectorTile:"OGCVectorTile",
+      GeoTIFF:"GeoTIFF",
+      UTFGrid:"UTFGrid",
+      ImageArcGISRest:"ImageArcGISRest",
+      ImageStatic:"ImageStatic",
+      ImageWMS:"ImageWMS",
+      Vector:"Vector"
+    },
+    node: {
+      empty: "No data source available"
+    },
+    menu: {
+      addToMap: "Add to Map",
+      edit: "Edit",
+      delete: "Delete",
+      addNew: "Add Data Source",
+      refresh: "Refresh Group"
+    },
+    error: {
+      loadFailed: "Failed to load data source. Please check the network or service URL.",
+      unsupportedType: "Unsupported type: {{type}}",
+      mapNotReady: "Please create or open a project before adding layers"
+    },
+    message: {
+      addedToMap: "{{name}} has been added to the map"
+    }
+
   }
-}
 };
 
 export default en;

@@ -32,7 +32,7 @@ export default function AppLayout() {
     const isResizing = useRef(false);
     const mapActions = useRef(new MapFileActions());
     const handleMenuAction = async (type: string) => {
-        debugger
+        
         switch (type) {
             case "newFile":
                 //显示新增弹窗
@@ -180,7 +180,7 @@ export default function AppLayout() {
                 visible={newMapVisible}
                 onCancel={() => setNewMapVisible(false)}
                 onConfirm={(info) => {
-                    debugger;
+                    
                     setNewMapVisible(false);
                     setProjectTitle(info.name);
                     const map = mapActions.current.newFile(info.name, {
@@ -188,7 +188,7 @@ export default function AppLayout() {
                         zoom: info.zoom,
                         projection: info.projection
                     });
-                    debugger
+                    
                     setMap(map);
                 }}
             />

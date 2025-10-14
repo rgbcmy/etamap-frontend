@@ -1,8 +1,9 @@
 // import { message } from "antd";
 import type { i18n } from "i18next"; // 用于国际化提示
-import type { ISerializedSource, ISource, IXYZ } from "node_modules/openlayers-serializer/dist/dto/source";
+import type { ISerializedSource, ISource, ITileWMS, IXYZ } from "node_modules/openlayers-serializer/dist/dto/source";
 import type { Map as OLMap } from "ol";
 import TileLayer from "ol/layer/Tile";
+import { TileWMS } from "ol/source";
 import XYZ from "ol/source/XYZ";
 import { deserializeSource, serializeSource } from "openlayers-serializer";
 
@@ -61,10 +62,26 @@ export class DataSourceService {
           source: xyzSource//new XYZ({ url: xyzSource.url ?? undefined })
         });
         map.addLayer(layer);
-        //message.success(this.t("dataSource.message.addedToMap", { name: source.name }));
+        break;
+      case "TileWMS":
+        // map.addLayer(new TileLayer({
+        //   extent: [-13884991, 2870341, -7455066, 6338219],
+        //   source: new TileWMS({
+        //     url: 'https://ahocevar.com/geoserver/wms',
+        //     params: { 'LAYERS': 'topp:states', 'TILED': true },
+        //     serverType: 'geoserver',
+        //     // Countries have transparency, so do not fade tiles:
+        //     transition: 0,
+        //   }),
+        // }))
+          let tileWMSSource = deserializeSource(source as ITileWMS)
+        const tileWMSLayer = new TileLayer({
+          extent: [-13884991, 2870341, -7455066, 6338219],
+          source: tileWMSSource//new XYZ({ url: xyzSource.url ?? undefined })
+        });
+        map.addLayer(tileWMSLayer);
         break;
       default:
-        //message.warning(this.t("dataSource.error.unsupportedType", { type: source.type }));
     }
   }
 }

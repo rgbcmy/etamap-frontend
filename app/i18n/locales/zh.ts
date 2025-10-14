@@ -100,7 +100,21 @@ const zh = {
     actions: "操作",
     saved: "数据源已保存",
     groupTitle: {
-      XYZ: "XYZ 瓦片服务"
+      XYZ: "XYZ 瓦片服务",
+      TileWMS: "TileWMS 瓦片服务",
+      Zoomify: "Zoomify 瓦片服务",
+      WMTS: "WMTS 瓦片服务",
+      TileJSON: "TileJSON 瓦片服务",
+      TileArcGISRest: "ArcGIS REST 瓦片服务",
+      OGCMapTile: "OGC 规范瓦片服务",
+      VectorTile: "矢量瓦片服务",
+      OGCVectorTile: "OGC 规范矢量瓦片服务",
+      GeoTIFF: "GeoTIFF 栅格数据",
+      UTFGrid: "UTFGrid 瓦片服务",
+      ImageArcGISRest: "ArcGIS REST 图片服务",
+      ImageStatic: "静态图片服务",
+      ImageWMS: "WMS 图片服务",
+      Vector: "矢量数据"
     },
     node: {
       empty: "暂无数据源"

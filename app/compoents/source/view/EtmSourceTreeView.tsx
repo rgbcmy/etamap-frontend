@@ -72,7 +72,7 @@ export default function EtmSourceTreeView({
                   { key: "delete", label: t("dataSource.menu.delete") },
                 ],
                 onClick: ({ key }) => {
-                  debugger
+                  
                   if (key === "add") {
                     onAddToMap?.(item);
                   } else

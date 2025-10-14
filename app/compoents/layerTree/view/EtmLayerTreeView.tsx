@@ -260,7 +260,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
             onContextMenu={(event) => {
                 // 如果右键点在节点上，不处理空白菜单
-                debugger
+                
                 const target = event.target as HTMLElement;
                 if (target.closest('.ant-tree-treenode')) return; // 点到节点不处理
                 event.preventDefault();
@@ -277,7 +277,7 @@ export function LayerTreeView({ ...props }: LayerTreeViewProps) {
                 });
             }}
             onClick={(event) => {
-                debugger
+                
                 const target = event.target as HTMLElement;
                 // 点到 Tree 节点或工具栏不清空
                 if (target.closest('.ant-tree-treenode') || target.closest('.ant-space')) return;

@@ -15,7 +15,7 @@ export default function LayerPanel({ map, linkParentChild = false }: LayerPanelP
     const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 
     useEffect(() => {
-        debugger
+        
         if (!map) {
             return;
         }

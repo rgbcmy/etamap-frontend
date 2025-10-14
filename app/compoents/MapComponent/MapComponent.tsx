@@ -19,7 +19,7 @@ export default function MapComponent({ map }: MapComponentProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    debugger
+    
     if (map && containerRef.current) {
       map.setTarget(containerRef.current);
     }

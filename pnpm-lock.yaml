@@ -29,6 +29,9 @@ importers:
       isbot:
         specifier: ^5.1.30
         version: 5.1.30
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       ol:
         specifier: 9.2.4
         version: 9.2.4

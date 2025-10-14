@@ -31,7 +31,7 @@ export default function SaveAsModal({
       const finalName = cleanName.endsWith(extension) ? cleanName : `${cleanName}${extension}`;
       onConfirm(finalName);
     } catch (ex:any){
-      debugger
+      
       console.error(ex.toString())
       //message.error("请输入有效的文件名");
     }

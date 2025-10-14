@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Select } from "antd";
 import SourceFormXYZ from "./Forms/SourceFormXYZ";
-import SourceFormWMS from "./Forms/SourceFormWMS";
+import SourceFormWMS from "./Forms/SourceFormTileWMS";
 import type { ISource } from "node_modules/openlayers-serializer/dist/dto/source";
 
 type Props = {
@@ -15,7 +15,7 @@ type Props = {
     onCancel: () => void;
 };
 
-export default function SourceModal({ visible, source,type, onOk, onCancel }: Props) {
+export default function SourceModal({ visible, source, type, onOk, onCancel }: Props) {
     const [form] = Form.useForm();
 
     useEffect(() => {
@@ -30,12 +30,14 @@ export default function SourceModal({ visible, source,type, onOk, onCancel }: Pr
         form.validateFields().then((values) => {
             onOk({
                 ...values,
-                type:type,
-                id: source?.id ||crypto.randomUUID()//  `${type}-${Date.now()}`,
+                type: type,
+                id: source?.id || crypto.randomUUID()//  `${type}-${Date.now()}`,
             });
             form.resetFields();
         });
     };
+
+
     const title = `${source ? "编辑" : "新增"} ${type} 数据源`;
     // const type = Form.useWatch("type", form);
 
@@ -73,7 +75,7 @@ export default function SourceModal({ visible, source,type, onOk, onCancel }: Pr
                 </Form.Item> */}
                 {/*tod 添加其他数据源*/}
                 {type === "XYZ" && <SourceFormXYZ form={form} />}
-                {type === "WMS" && <SourceFormWMS form={form} />}
+                {type === "TileWMS" && <SourceFormWMS form={form} />}
             </Form>
         </Modal>
     );

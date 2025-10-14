@@ -19,7 +19,7 @@ export const RibbonMenu: React.FC<{ onAction: (type: string) => void }> = ({ onA
       // { key: "exit", label: t("file.exit") },
     ],
     onClick: ({ key }: { key: string }) => {
-      debugger
+      
       switch (key) {
         case "new": onAction("newFile"); break;
         case "open": onAction("openFile"); break;
