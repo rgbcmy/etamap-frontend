@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Checkbox, Col, Form, Input, InputNumber, message, Row, Select, Space, type FormInstance } from "antd";
 import type { ITileWMS } from "node_modules/openlayers-serializer/dist/dto/source";
 import TileGridForm from "./TileGridForm";
-import ParamsFormList from "./ParamsFormList";
+import ParamsJsonEditor from "./ParamsJsonEditor";
 
 type Props = {
   form: FormInstance<ITileWMS>;
@@ -45,7 +45,11 @@ export default function SourceFormTileWMS({ form }: Props) {
         />
       </Form.Item>
 
-      <ParamsFormList form={form} name={["params"]} label="WMS 参数 (params)" />
+      <Form form={form} layout="vertical">
+        <Form.Item label="WMS 参数 (params)" name="params">
+          <ParamsJsonEditor />
+        </Form.Item>
+      </Form>
 
       <Form.Item
         name="projection"
