@@ -74,6 +74,7 @@ export default function EtmSourceTreeView({
                 onClick: ({ key }) => {
                   
                   if (key === "add") {
+                    debugger
                     onAddToMap?.(item);
                   } else
                     if (key === "edit") {

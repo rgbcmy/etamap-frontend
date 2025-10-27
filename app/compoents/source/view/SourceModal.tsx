@@ -3,6 +3,7 @@ import { Modal, Form, Input, Select } from "antd";
 import SourceFormXYZ from "./Forms/SourceFormXYZ";
 import SourceFormWMS from "./Forms/SourceFormTileWMS";
 import type { ISource } from "node_modules/openlayers-serializer/dist/dto/source";
+import SourceFormWMTS from "./Forms/SourceFornWMTS";
 
 type Props = {
     visible: boolean;
@@ -17,7 +18,7 @@ type Props = {
 
 export default function SourceModal({ visible, source, type, onOk, onCancel }: Props) {
     const [form] = Form.useForm();
-
+    debugger
     useEffect(() => {
         if (source) {
             form.setFieldsValue(source);
@@ -76,6 +77,7 @@ export default function SourceModal({ visible, source, type, onOk, onCancel }: P
                 {/*tod 添加其他数据源*/}
                 {type === "XYZ" && <SourceFormXYZ form={form} />}
                 {type === "TileWMS" && <SourceFormWMS form={form} />}
+                {type === "WMTS" && <SourceFormWMTS form={form} />}
             </Form>
         </Modal>
     );
