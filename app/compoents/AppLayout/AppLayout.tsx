@@ -11,7 +11,9 @@ import type { IMap } from "node_modules/openlayers-serializer/dist/dto/map";
 import NewMapModal from "../common/NewMapModal";
 import DataSourceManagerModal from "../source/DataSourceManagerModal";
 import DataSourceTree from "../source/DataSourcePanel";
-import DataSourcePanel from "../source/DataSourcePanel";
+import DataSourceBrowser from "../SourceBrower/DataSourceBrowser";
+// import DataSourcePanel from "../source/DataSourcePanel";
+
 
 export default function AppLayout() {
     const { t } = useTranslation();
@@ -144,7 +146,8 @@ export default function AppLayout() {
             <div className={styles.main}>
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
                     <div className={styles.dataSourceSection}>
-                        <DataSourcePanel map={map}></DataSourcePanel>
+                        {/* <DataSourcePanel map={map}></DataSourcePanel> */}
+                        <DataSourceBrowser></DataSourceBrowser>
                     </div>
                     <div className={styles.layerSection}>
                         <LayerPanel map={map} />
