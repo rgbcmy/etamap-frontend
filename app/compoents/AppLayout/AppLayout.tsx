@@ -9,8 +9,6 @@ import SaveAsModal from "../common/SaveAsModal";
 import { useTranslation } from "react-i18next";
 import type { IMap } from "node_modules/openlayers-serializer/dist/dto/map";
 import NewMapModal from "../common/NewMapModal";
-import DataSourceManagerModal from "../source/DataSourceManagerModal";
-import DataSourceTree from "../source/DataSourcePanel";
 import DataSourceBrowser from "../SourceBrower/DataSourceBrowser";
 // import DataSourcePanel from "../source/DataSourcePanel";
 
@@ -112,12 +110,15 @@ export default function AppLayout() {
         };
     }, []);
 
-    const handleAddToMap = (source: any) => {
-        // 加载到地图（OpenLayers 示例）
-        // const layer = new ol.layer.Tile({
-        //     source: new ol.source.XYZ({ url: source.url })
-        // });
-        // map.addLayer(layer);
+    const handleAddLayer = (layer: any) => {
+        if (!map) {
+            console.warn('Map is not initialized yet');
+            return;
+        }
+        
+        // 将图层添加到地图
+        map.addLayer(layer);
+        console.log('Layer added to map:', layer.get('name'));
     };
 
     const handleEdit = (source: any) => {
@@ -147,7 +148,7 @@ export default function AppLayout() {
                 <div className={styles.leftPanel} style={{ width: leftWidth }}>
                     <div className={styles.dataSourceSection}>
                         {/* <DataSourcePanel map={map}></DataSourcePanel> */}
-                        <DataSourceBrowser></DataSourceBrowser>
+                        <DataSourceBrowser onAddLayer={handleAddLayer}></DataSourceBrowser>
                     </div>
                     <div className={styles.layerSection}>
                         <LayerPanel map={map} />
@@ -197,10 +198,7 @@ export default function AppLayout() {
             />
             {/* <Button onClick={() => setManagerVisible(true)}>管理数据源</Button> */}
 
-            <DataSourceManagerModal
-                visible={sourceManagerVisible}
-                onClose={() => setSourceManagerVisible(false)}
-            />
+
         </div>
     );
 }

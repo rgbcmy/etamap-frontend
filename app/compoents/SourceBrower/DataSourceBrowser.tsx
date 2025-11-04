@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Tree, message, Dropdown, Modal, Spin, Input, Button } from 'antd';
+import { Tree, message, Dropdown, Modal, Spin, Input, Button, Space, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   FolderOutlined,
@@ -42,7 +42,7 @@ import {
 } from '../../utils/indexedDB';
 import ConnectionDialog from './ConnectionDialog';
 import AddLayerDialog from './AddLayerDialog';
-import { createLayerWithConfig } from '../../utils/sourceFactory';
+import { createLayerWithConfig, createLayerFromConnection, canAddConnectionDirectly } from '../../utils/sourceFactory';
 
 interface DataSourceBrowserProps {
   onAddLayer?: (layer: any) => void;
@@ -58,8 +58,9 @@ const SERVICE_TYPE_CONFIG = {
 } as const;
 
 const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => {
+  const [modal, contextHolder] = Modal.useModal();
   const [treeData, setTreeData] = useState<TreeNodeData[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(['root']);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [loadedKeys, setLoadedKeys] = useState<React.Key[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -107,8 +108,10 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
       type: 'type-group',
       icon: getServiceIcon(type),
       serviceType: type,
-      children: connections.map(conn => createConnectionNode(conn)),
-      isLeaf: false,
+      children: connections.length > 0 
+        ? connections.map(conn => createConnectionNode(conn))
+        : undefined, // 没有连接时不显示子节点
+      isLeaf: connections.length === 0, // 没有连接时标记为叶子节点
     };
   }, [getServiceIcon, createConnectionNode]);
 
@@ -157,24 +160,15 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
         .sort(([, a], [, b]) => a.order - b.order)
         .forEach(([type]) => {
           const conns = groupedByType[type];
-          if (conns.length > 0) {
-            typeGroups.push(createTypeGroupNode(type, conns));
-          }
+          // ✅ 始终显示分组，即使没有连接
+          typeGroups.push(createTypeGroupNode(type, conns));
         });
 
-      const rootNode: TreeNodeData = {
-        key: 'root',
-        title: 'Data Sources',
-        type: 'root',
-        icon: <DatabaseOutlined />,
-        children: typeGroups,
-      };
-      
-      setTreeData([rootNode]);
+      setTreeData(typeGroups);
       
       if (typeGroups.length > 0) {
         const typeGroupKeys = typeGroups.map(g => g.key);
-        setExpandedKeys(['root', ...typeGroupKeys]);
+        setExpandedKeys(typeGroupKeys);
       }
       
     } catch (error) {
@@ -280,20 +274,6 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
 
   // ✅ 右键菜单
   const getContextMenu = useCallback((node: TreeNodeData): MenuProps['items'] => {
-    if (node.type === 'root') {
-      return [
-        {
-          key: 'new',
-          label: 'New Connection',
-          icon: <PlusOutlined />,
-          onClick: () => {
-            setEditingConnection(undefined);
-            setDialogVisible(true);
-          },
-        },
-      ];
-    }
-
     if (node.type === 'type-group') {
       return [
         {
@@ -305,17 +285,43 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
             setDialogVisible(true);
           },
         },
-        {
-          key: 'refresh',
-          label: 'Refresh All',
-          icon: <ReloadOutlined />,
-          onClick: () => loadConnections(),
-        },
+        // 分组不提供删除和刷新功能，保持结构稳定
       ];
     }
 
     if (node.type === 'connection') {
-      return [
+      const menuItems: MenuProps['items'] = [];
+
+      // 如果数据源支持直接添加到地图（如 XYZ），显示 "Add to Map" 选项
+      if (node.connection && canAddConnectionDirectly(node.connection)) {
+        menuItems.push({
+          key: 'add-to-map',
+          label: 'Add to Map',
+          icon: <ThunderboltOutlined />,
+          onClick: async () => {
+            debugger;
+            if (!node.connection) return;
+
+            try {
+              const layer = createLayerFromConnection(node.connection);
+              
+              if (onAddLayer) {
+                onAddLayer(layer);
+              }
+
+              message.success(`Added layer: ${node.connection.name}`);
+            } catch (error) {
+              message.error((error as Error).message || 'Failed to add layer to map');
+              console.error(error);
+            }
+          },
+        });
+        menuItems.push({
+          type: 'divider',
+        });
+      }
+
+      menuItems.push(
         {
           key: 'refresh',
           label: 'Refresh',
@@ -347,7 +353,7 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
           danger: true,
           onClick: () => {
             if (!node.connectionId) return;
-            Modal.confirm({
+            modal.confirm({
               title: 'Delete Connection',
               icon: <ExclamationCircleOutlined />,
               content: `Are you sure you want to delete "${node.title}"?`,
@@ -364,8 +370,10 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
               },
             });
           },
-        },
-      ];
+        }
+      );
+
+      return menuItems;
     }
 
     if (node.type === 'layer-group') {
@@ -382,7 +390,7 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
           icon: <InfoCircleOutlined />,
           onClick: () => {
             if (!node.layer) return;
-            Modal.info({
+            modal.info({
               title: node.title,
               width: 600,
               content: (
@@ -472,7 +480,7 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
           icon: <InfoCircleOutlined />,
           onClick: () => {
             if (!node.layer) return;
-            Modal.info({
+            modal.info({
               title: node.title,
               width: 600,
               content: (
@@ -495,7 +503,7 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
     }
 
     return [];
-  }, [findConnection, treeData, updateTreeData, loadConnections, onAddLayer]);
+  }, [findConnection, treeData, updateTreeData, loadConnections, onAddLayer, modal]);
 
   // ✅ 处理保存连接
   const handleSaveConnection = useCallback(async (connection: ServiceConnection) => {
@@ -560,32 +568,71 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '16px 16px 0' }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingConnection(undefined);
-            setDialogVisible(true);
-          }}
-          block
-          style={{ marginBottom: 16 }}
-        >
-          New Connection
-        </Button>
-        
+      {contextHolder}
+      {/* 工具栏 */}
+      <div style={{ flexShrink: 0, padding: '8px' }}>
+        <Space>
+          <Tooltip title="New Connection">
+            <Button
+              type="text"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingConnection(undefined);
+                setDialogVisible(true);
+              }}
+              shape="circle"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="Refresh All">
+            <Button
+              type="text"
+              icon={<ReloadOutlined />}
+              onClick={loadConnections}
+              shape="circle"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="Expand All">
+            <Button
+              type="text"
+              icon={<FolderOpenOutlined />}
+              onClick={() => {
+                const allKeys = treeData.map(node => node.key);
+                setExpandedKeys(allKeys);
+              }}
+              shape="circle"
+              size="small"
+            />
+          </Tooltip>
+          <Tooltip title="Collapse All">
+            <Button
+              type="text"
+              icon={<FolderOutlined />}
+              onClick={() => setExpandedKeys([])}
+              shape="circle"
+              size="small"
+            />
+          </Tooltip>
+        </Space>
+      </div>
+
+      {/* 搜索框 */}
+      <div style={{ flexShrink: 0, padding: '0 8px 8px' }}>
         <Input.Search
           placeholder="Search data sources..."
           value={searchValue}
           onChange={e => setSearchValue(e.target.value)}
-          style={{ marginBottom: 16 }}
+          size="small"
           allowClear
         />
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 16px' }}>
+      {/* 树形结构 */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
         <Spin spinning={loading} indicator={<LoadingOutlined spin />}>
           <Tree
+            rootStyle={{ padding: '0 8px' }}
             showIcon
             expandedKeys={expandedKeys}
             onExpand={keys => setExpandedKeys(keys)}
@@ -601,20 +648,15 @@ const DataSourceBrowser: React.FC<DataSourceBrowserProps> = ({ onAddLayer }) => 
                 >
                   <span
                     style={{
-                      display: 'inline-block',
-                      width: '100%',
                       userSelect: 'none',
                     }}
                   >
-                    {node.loading ? <LoadingOutlined /> : node.icon}
-                    <span style={{ marginLeft: 8 }}>
-                      {node.title}
-                      {node.error && (
-                        <span style={{ color: 'red', marginLeft: 8 }}>
-                          ({node.error})
-                        </span>
-                      )}
-                    </span>
+                    {node.title}
+                    {node.error && (
+                      <span style={{ color: 'red', marginLeft: 8 }}>
+                        ({node.error})
+                      </span>
+                    )}
                   </span>
                 </Dropdown>
               );

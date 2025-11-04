@@ -4,14 +4,14 @@ import type { ServiceConnection } from '../../../types/dataSource';
 import { useConnectionForm } from './useConnectionForm';
 import AuthSection from './AuthSection';
 
-interface WMTSConnectionFormProps {
+interface WMSConnectionFormProps {
   connection?: ServiceConnection;
   onSubmit: (connection: ServiceConnection) => void;
   onCancel: () => void;
   onTypeChange: (type: any) => void;
 }
 
-const WMTSConnectionForm: React.FC<WMTSConnectionFormProps> = ({
+const WMSConnectionForm: React.FC<WMSConnectionFormProps> = ({
   connection,
   onSubmit,
   onCancel,
@@ -33,7 +33,7 @@ const WMTSConnectionForm: React.FC<WMTSConnectionFormProps> = ({
       });
     } else {
       form.setFieldsValue({
-        type: 'wmts',
+        type: 'wms',
         authType: 'none',
       });
     }
@@ -46,7 +46,7 @@ const WMTSConnectionForm: React.FC<WMTSConnectionFormProps> = ({
       const newConnection: ServiceConnection = {
         id: connection?.id || crypto.randomUUID(),
         name: values.name,
-        type: 'wmts',
+        type: 'wms',
         url: values.url.trim(),
         params: {},
         createdAt: connection?.createdAt || new Date().toISOString(),
@@ -84,8 +84,8 @@ const WMTSConnectionForm: React.FC<WMTSConnectionFormProps> = ({
   return (
     <Form form={form} layout="vertical">
       <Alert
-        message="WMTS (Web Map Tile Service)"
-        description="OGC standard for serving pre-rendered georeferenced map tiles. More efficient than WMS for tiled data."
+        message="WMS (Web Map Service)"
+        description="OGC standard for serving georeferenced map images. Supports dynamic rendering with customizable styles and formats."
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
@@ -138,4 +138,4 @@ const WMTSConnectionForm: React.FC<WMTSConnectionFormProps> = ({
   );
 };
 
-export default WMTSConnectionForm;
+export default WMSConnectionForm;
